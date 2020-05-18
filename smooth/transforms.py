@@ -1,6 +1,5 @@
 __all__ = ["to_bounded_vec", "to_bounded", "to_inf_vec", "to_inf"]
 
-# Cell
 import jax
 import jax.numpy as jnp
 

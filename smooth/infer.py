@@ -1,6 +1,5 @@
 __all__ = ["expected_pvalue_upper_limit", "CLs"]
 
-# Cell
 import jax
 import jax.numpy as jnp
 from jax import config
@@ -15,7 +14,6 @@ pyhf.set_backend(pyhf.tensor.jax_backend())
 
 from .fit import global_fit, constrained_fit
 from .transforms import *
-from .utils import binary_search
 
 
 def expected_pvalue_upper_limit(model_maker, solver_kwargs):
