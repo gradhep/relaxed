@@ -94,7 +94,7 @@ def hist(events, bins, bandwidth=None):
             binned counts, calculated by kde!
     """
 
-    bandwidth = bandwidth or events.shape[-1]**-.25
+    #bandwidth = bandwidth or events.shape[-1]**-.25
     
     # grab bin edges
     edge_lo = bins[:-1]
