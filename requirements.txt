@@ -1,0 +1,6 @@
+jax
+jaxlib 
+numpy 
+matplotlib 
+jax-fixedpoint 
+git+https://github.com/phinate/pyhf.git@diffable_json
