@@ -47,11 +47,11 @@ accept/reject is so non-diffable
 The Gumbel-Max Trick is a method to sample from a categorical distribution $Cat(\alpha_1, \dots, \alpha_K)$, where category $k$ has $\alpha_k$
 probability to be sampled among $K$ categories, and relies on the Gumbel distribution defined by the Cumulative Distribution Function.
 
-  * [](https://laurent-dinh.github.io/2016/11/22/gumbel-max.html)
-  * [](https://cmaddis.github.io/gumbel-machinery)
+  * [Gumbel Max Trick](https://laurent-dinh.github.io/2016/11/22/gumbel-max.html)
+  * [Gumbel Machinery](https://cmaddis.github.io/gumbel-machinery)
 
- * ** Sparse Structured Prediction:**
- See paper [Differentiable Relaxed Optimization for Sparse Structured Prediction](https://arxiv.org/abs/2001.04437)
+ * **Sparse Structured Prediction:** 
+  See paper [Differentiable Relaxed Optimization for Sparse Structured Prediction](https://arxiv.org/abs/2001.04437)
 
 *  **Coreference resolution**:
 "Coreference resolution is the task of identifying all mentions which refer to the same entity in a document." "Coreference resolution can be regarded as a clustering problem: each cluster corresponds to a single entity and consists of all its mentions in a given text." From Optimizing Differentiable Relaxations of Coreference Evaluation Metrics [https://arxiv.org/abs/1704.04451](https://arxiv.org/abs/1704.04451) 
