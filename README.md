@@ -9,7 +9,7 @@ Browse or contribute to the [List of Differentiable Operations](list_of_operatio
 
 Clone and cd into the repo, then in a python venv run 
 ```
-python -m pip install -r requirements.txt
+python -m pip install -e .
 ```
 to install dependencies. 
 
