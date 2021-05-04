@@ -1,15 +1,22 @@
-__all__ = ['hist_kde']
+"""differentiable implementations of histograms."""
+
+__all__ = ["hist_kde"]
 
 from typing import Optional
 import jax
 import jax.numpy as jnp
 import jax.scipy as jsc
 
-from ..types import Array
+from .._types import Array
+
 
 @jax.jit
-def hist_kde(events: Array, bins: Array, bandwidth: Optional[float] = None, density: bool = False) -> Array:
+def hist_kde(
+    events: Array, bins: Array, bandwidth: Optional[float] = None, density: bool = False
+) -> Array:
     """
+    Differentiable implementation of a histogram using kernel density estimation.
+
     Parameters
     ----------
     events: (jax array-like) 1D data!
@@ -18,6 +25,7 @@ def hist_kde(events: Array, bins: Array, bandwidth: Optional[float] = None, dens
         distributions (kernels), whose cdfs are averaged over each bin. Defaults
         to Scott's rule -- the same as scipy's.
     density: (bool) whether or not to normalize the histogram to unit area.
+
     Returns
     -------
     counts: 1D array of binned counts
