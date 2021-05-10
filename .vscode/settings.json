@@ -1,3 +1,4 @@
 {
-    "python.pythonPath": "/Users/phinate/.venvs/relaxenv/bin/python"
+    "python.pythonPath": "/Users/phinate/.venvs/relaxenv/bin/python",
+    "jupyter.jupyterServerType": "local"
 }
