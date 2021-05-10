@@ -15,7 +15,7 @@ from .minuit_transforms import to_inf
 
 
 def constrained_fit(
-    model_constructor: Callable[[Any], tuple[Any, ArrayDevice]],
+    model_maker: Callable[[Any], tuple[Any, ArrayDevice]],
     pdf_transform: bool = False,
     default_rtol: float = 1e-10,
     default_atol: float = 1e-10,
@@ -26,7 +26,7 @@ def constrained_fit(
 
     Parameters
     ----------
-    model_constructor: function that takes model params and returns the tuple
+    model_maker: function that takes model params and returns the tuple
     [model, background-only parameters] when called.
     pdf_transform: whether to map the likelihood domain to [-inf, inf]
     during minimization.
@@ -38,7 +38,7 @@ def constrained_fit(
     -------
     constrained_fitter: function that peforms the fit in a differentiable way
     via Christianson's two-phase method.
-    Takes in (initial params, hyper params) as args.
+    Takes in (initial params, model hyperparams) as args.
     """
     adam_init, adam_update, adam_get_params = optimizers.adam(learning_rate)
 
@@ -47,7 +47,7 @@ def constrained_fit(
     ) -> tuple[float, Callable[[ArrayDevice], float]]:
 
         model_pars, constrained_mu = hyper_pars
-        m, bonlypars = model_constructor(model_pars)
+        m, bonlypars = model_maker(model_pars)
 
         bounds: ArrayDevice = m.config.suggested_bounds()
         constrained_mu = (

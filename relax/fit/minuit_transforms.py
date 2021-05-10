@@ -1,4 +1,4 @@
-"""implementations of transforms to aid minimisation, taken from minuit."""
+"""implementations of scaling transforms to aid minimisation, taken from minuit."""
 
 __all__ = ["to_bounded_vec", "to_bounded", "to_inf_vec", "to_inf"]
 
