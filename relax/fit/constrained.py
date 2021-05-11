@@ -5,9 +5,9 @@ from typing import Any
 from typing import Callable
 
 import jax
+import jax.experimental.optimizers as optimizers
 import jax.numpy as jnp
 from fax.implicit import two_phase_solver
-from jax import optimizers
 
 from .._types import ArrayDevice
 from .minuit_transforms import to_bounded_vec
