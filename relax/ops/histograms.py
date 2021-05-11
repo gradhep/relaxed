@@ -7,13 +7,16 @@ import jax
 import jax.numpy as jnp
 import jax.scipy as jsc
 
-from .._types import Array
+from .._types import ArrayDevice
 
 
 @jax.jit
 def hist_kde(
-    events: Array, bins: Array, bandwidth: Optional[float] = None, density: bool = False
-) -> Array:
+    events: ArrayDevice,
+    bins: ArrayDevice,
+    bandwidth: Optional[float] = None,
+    density: bool = False,
+) -> ArrayDevice:
     """
     Differentiable implementation of a histogram using kernel density estimation.
 
