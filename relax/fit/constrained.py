@@ -49,7 +49,7 @@ def constrained_fit(
         model_pars, constrained_mu = hyper_pars
         m, bonlypars = model_maker(model_pars)
 
-        bounds: ArrayDevice = m.config.suggested_bounds()
+        bounds = jnp.array(m.config.suggested_bounds())
         constrained_mu = (
             to_inf(constrained_mu, bounds[0]) if pdf_transform else constrained_mu
         )

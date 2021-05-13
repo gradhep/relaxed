@@ -44,8 +44,7 @@ def make_hypotest(
 
         m, bonlypars = model_maker(hyperpars)
         exp_data = m.expected_data(bonlypars)
-        bounds = m.config.suggested_bounds()
-
+        bounds = jnp.array(m.config.suggested_bounds())
         # map these
         initval = jnp.asarray([test_mu, 1.0])
         transforms = solver_kwargs.get("pdf_transform", False)
