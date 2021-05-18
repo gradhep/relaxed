@@ -16,7 +16,7 @@ def hist_kde(
     bins: ArrayDevice,
     bandwidth: Optional[float] = None,
     density: bool = False,
-    reflect_infinities: bool = False
+    reflect_infinities: bool = False,
 ) -> ArrayDevice:
     """
     Differentiable implementation of a histogram using kernel density estimation.
@@ -29,8 +29,8 @@ def hist_kde(
         distributions (kernels), whose cdfs are averaged over each bin. Defaults
         to Scott's rule -- the same as scipy's.
     density: (bool) whether or not to normalize the histogram to unit area.
-    reflect_infinities: (bool) choose to reflect the under/overflow bins in the bin edges.
-    doing so will ensure (normalised) unit total density, 
+    reflect_infinities: (bool) if true, reflect  under/overflow bins into boundary bins.
+    doing so will ensure (normalised) unit total density,
     as kdes have infinite support.
 
     Returns
@@ -38,6 +38,8 @@ def hist_kde(
     counts: 1D array of binned counts
     """
     bandwidth = bandwidth or events.shape[-1] ** -0.25  # Scott's rule
+
+    bins = jnp.array([-jnp.inf, *bins, jnp.inf]) if reflect_infinities else bins
 
     edge_hi = bins[1:]  # ending bin edges ||<-
     edge_lo = bins[:-1]  # starting bin edges ->||
@@ -50,6 +52,13 @@ def hist_kde(
 
     if density:  # normalize by bin width and counts for total area = 1
         db = jnp.array(jnp.diff(bins), float)  # bin spacing
-        return counts / db / counts.sum(axis=0)
+        counts = counts / db / counts.sum(axis=0)
+
+    if reflect_infinities:
+        counts = (
+            counts[1:-1]
+            + jnp.array([counts[0]] + [0] * (len(counts) - 3))
+            + jnp.array([0] * (len(counts) - 3) + [counts[-1]])
+        )
 
     return counts
