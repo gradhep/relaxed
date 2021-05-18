@@ -16,6 +16,7 @@ def hist_kde(
     bins: ArrayDevice,
     bandwidth: Optional[float] = None,
     density: bool = False,
+    reflect_infinities: bool = False
 ) -> ArrayDevice:
     """
     Differentiable implementation of a histogram using kernel density estimation.
@@ -28,6 +29,9 @@ def hist_kde(
         distributions (kernels), whose cdfs are averaged over each bin. Defaults
         to Scott's rule -- the same as scipy's.
     density: (bool) whether or not to normalize the histogram to unit area.
+    reflect_infinities: (bool) choose to reflect the under/overflow bins in the bin edges.
+    doing so will ensure (normalised) unit total density, 
+    as kdes have infinite support.
 
     Returns
     -------
