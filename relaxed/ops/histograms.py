@@ -5,18 +5,19 @@ __all__ = ["hist_kde"]
 from typing import Optional
 import jax
 import jax.numpy as jnp
-import jax.scipy as jsc
+import jax.scipy as jsp
+# from functools import partial
 
 from .._types import ArrayDevice
 
-
-@jax.jit
+# for when we support current jax versions
+# @partial(jax.jit, static_argnames = ['density', 'reflect_infinities']) 
 def hist_kde(
     events: ArrayDevice,
     bins: ArrayDevice,
     bandwidth: Optional[float] = None,
     density: bool = False,
-    reflect_infinities: bool = False,
+    reflect_infinities: bool = True,
 ) -> ArrayDevice:
     """
     Differentiable implementation of a histogram using kernel density estimation.
@@ -45,8 +46,8 @@ def hist_kde(
     edge_lo = bins[:-1]  # starting bin edges ->||
 
     # get cumulative counts (area under kde) for each set of bin edges
-    cdf_up = jsc.stats.norm.cdf(edge_hi.reshape(-1, 1), loc=events, scale=bandwidth)
-    cdf_dn = jsc.stats.norm.cdf(edge_lo.reshape(-1, 1), loc=events, scale=bandwidth)
+    cdf_up = jsp.stats.norm.cdf(edge_hi.reshape(-1, 1), loc=events, scale=bandwidth)
+    cdf_dn = jsp.stats.norm.cdf(edge_lo.reshape(-1, 1), loc=events, scale=bandwidth)
     # sum kde contributions in each bin
     counts = (cdf_up - cdf_dn).sum(axis=1)
 
