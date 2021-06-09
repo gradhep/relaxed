@@ -3,13 +3,13 @@
 __all__ = ["hist_kde"]
 
 from typing import Optional
-import jax
 import jax.numpy as jnp
 import jax.scipy as jsp
 
 # from functools import partial
 
 from .._types import ArrayDevice
+
 
 # for when we support current jax versions
 # @partial(jax.jit, static_argnames = ['density', 'reflect_infinities'])

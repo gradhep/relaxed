@@ -7,7 +7,7 @@ from ..fit import constrained_fit
 from ..fit.minuit_transforms import to_bounded_vec, to_inf_vec
 from .._types import ArrayDevice
 
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 import jax
 import jax.numpy as jnp
 import pyhf
@@ -17,7 +17,7 @@ jax.config.update("jax_enable_x64", True)
 
 
 def make_hypotest(
-    model_maker: Callable[[Any], tuple[Any, ArrayDevice]],
+    model_maker: Callable[..., tuple[Any, ArrayDevice]],
     solver_kwargs: dict[str, Any] = dict(pdf_transform=True),
 ) -> Callable[[ArrayDevice, float, list[str]], dict[str, float]]:
     """Instatiate a hypotheses test based on a model maker.
@@ -37,7 +37,10 @@ def make_hypotest(
 
     @jax.jit
     def hypotest(
-        hyperpars: ArrayDevice, test_mu: float, metrics: list[str] = ["CLs"], model_kwargs: dict[str, Any] = dict(),
+        hyperpars: ArrayDevice,
+        test_mu: float,
+        metrics: list[str] = ["CLs"],
+        model_kwargs: dict[str, Any] = dict(),
     ) -> dict[str, float]:
         # g_fitter = global_fit(model_maker, **solver_kwargs)
         c_fitter = constrained_fit(model_maker, model_kwargs, **solver_kwargs)
