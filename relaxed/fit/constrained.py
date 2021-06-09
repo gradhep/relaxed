@@ -1,5 +1,6 @@
 """instantiate routines for fitting a model given a fixed param of intrest."""
 from __future__ import annotations
+from functools import partial
 
 from typing import Any
 from typing import Callable
@@ -16,6 +17,7 @@ from .minuit_transforms import to_inf
 
 def constrained_fit(
     model_maker: Callable[[Any], tuple[Any, ArrayDevice]],
+    model_kwargs: dict[str, Any] = dict(),
     pdf_transform: bool = False,
     default_rtol: float = 1e-10,
     default_atol: float = 1e-10,
@@ -43,11 +45,11 @@ def constrained_fit(
     adam_init, adam_update, adam_get_params = optimizers.adam(learning_rate)
 
     def make_model(
-        hyper_pars: tuple[ArrayDevice, float]
+        hyper_pars: tuple[ArrayDevice, float],
     ) -> tuple[float, Callable[[ArrayDevice], float]]:
 
         model_pars, constrained_mu = hyper_pars
-        m, bonlypars = model_maker(model_pars)
+        m, bonlypars = model_maker(model_pars, **model_kwargs)
 
         bounds = jnp.array(m.config.suggested_bounds())
         constrained_mu = (
@@ -73,9 +75,9 @@ def constrained_fit(
         return constrained_mu, constrained_fit_objective
 
     def constrained_bestfit_minimized(
-        hyper_pars: tuple[ArrayDevice, float]
+        hyper_pars: tuple[ArrayDevice, float],
     ) -> Callable[[int, ArrayDevice], ArrayDevice]:
-        mu, cnll = make_model(hyper_pars)
+        mu, cnll = make_model(hyper_pars, model_kwargs)
 
         def bestfit_via_grad_descent(
             i: int, param: ArrayDevice

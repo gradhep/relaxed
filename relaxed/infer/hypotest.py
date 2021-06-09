@@ -7,7 +7,7 @@ from ..fit import constrained_fit
 from ..fit.minuit_transforms import to_bounded_vec, to_inf_vec
 from .._types import ArrayDevice
 
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 import jax
 import jax.numpy as jnp
 import pyhf
@@ -37,12 +37,12 @@ def make_hypotest(
 
     @jax.jit
     def hypotest(
-        hyperpars: ArrayDevice, test_mu: float, metrics: list[str] = ["CLs"]
+        hyperpars: ArrayDevice, test_mu: float, metrics: list[str] = ["CLs"], model_kwargs: dict[str, Any] = dict(),
     ) -> dict[str, float]:
         # g_fitter = global_fit(model_maker, **solver_kwargs)
-        c_fitter = constrained_fit(model_maker, **solver_kwargs)
+        c_fitter = constrained_fit(model_maker, model_kwargs, **solver_kwargs)
 
-        m, bonlypars = model_maker(hyperpars)
+        m, bonlypars = model_maker(hyperpars, **model_kwargs)
         exp_data = m.expected_data(bonlypars)
         bounds = jnp.array(m.config.suggested_bounds())
         # map these
