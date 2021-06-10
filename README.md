@@ -21,8 +21,8 @@
 [black-link]:               https://github.com/psf/black
 [conda-badge]:              https://img.shields.io/conda/vn/conda-forge/relaxed
 [conda-link]:               https://github.com/conda-forge/relaxed-feedstock
-[codecov-badge]:            https://app.codecov.io/gh/gradhep/relaxed/branch/main/graph/badge.svg
-[codecov-link]:            https://app.codecov.io/gh/gradhep/relaxed
+[codecov-badge]:            https://codecov.io/gh/gradhep/relaxed/branch/master/graph/badge.svg?token=CJLGC7H7NY
+[codecov-link]:             https://codecov.io/gh/gradhep/relaxed
 [github-discussions-badge]: https://img.shields.io/static/v1?label=Discussions&message=Ask&color=blue&logo=github
 [github-discussions-link]:  https://github.com/gradhep/relaxed/discussions
 [gitter-badge]:             https://badges.gitter.im/https://github.com/gradhep/relaxed/community.svg
