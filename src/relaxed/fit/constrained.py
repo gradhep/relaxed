@@ -1,8 +1,7 @@
 """instantiate routines for fitting a model given a fixed param of intrest."""
 from __future__ import annotations
 
-from typing import Any
-from typing import Callable
+from typing import Any, Callable
 
 import jax
 import jax.experimental.optimizers as optimizers
@@ -10,8 +9,7 @@ import jax.numpy as jnp
 from fax.implicit import two_phase_solver
 
 from .._types import ArrayDevice
-from .minuit_transforms import to_bounded_vec
-from .minuit_transforms import to_inf
+from .minuit_transforms import to_bounded_vec, to_inf
 
 
 def constrained_fit(

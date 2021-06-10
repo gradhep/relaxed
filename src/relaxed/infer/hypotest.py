@@ -3,14 +3,15 @@ from __future__ import annotations
 
 __all__ = ["make_hypotest"]
 
-from ..fit import constrained_fit
-from ..fit.minuit_transforms import to_bounded_vec, to_inf_vec
-from .._types import ArrayDevice
-
 from typing import Any, Callable
+
 import jax
 import jax.numpy as jnp
 import pyhf
+
+from .._types import ArrayDevice
+from ..fit import constrained_fit
+from ..fit.minuit_transforms import to_bounded_vec, to_inf_vec
 
 pyhf.set_backend("jax")
 jax.config.update("jax_enable_x64", True)
