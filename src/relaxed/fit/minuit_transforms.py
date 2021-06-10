@@ -3,6 +3,7 @@
 __all__ = ["to_bounded_vec", "to_bounded", "to_inf_vec", "to_inf"]
 
 import jax.numpy as jnp
+
 from .._types import ArrayDevice
 
 

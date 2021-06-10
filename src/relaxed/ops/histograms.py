@@ -3,12 +3,13 @@
 __all__ = ["hist_kde"]
 
 from typing import Optional
+
 import jax.numpy as jnp
 import jax.scipy as jsp
 
-# from functools import partial
-
 from .._types import ArrayDevice
+
+# from functools import partial
 
 
 # for when we support current jax versions
