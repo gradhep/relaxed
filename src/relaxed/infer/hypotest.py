@@ -78,7 +78,19 @@ def make_hypotest(
         CLb = 1 - pyhf.tensorlib.normal_cdf(altval)
         CLs = CLsb / CLb
 
-        pdict = dict(CLs=CLs, p_sb=CLsb, p_b=CLb, profile_likelihood=profile_likelihood)
+        pdict = dict(
+            CLs=CLs,
+            p_sb=CLsb,
+            p_b=CLb,
+            profile_likelihood=profile_likelihood,
+            pull=jnp.array(
+                [
+                    (numerator - jnp.asarray([test_mu, 1.0]))[1:]
+                    / m.config.param_set(k).width()
+                    for k in m.config.par_order
+                ]
+            ),
+        )
         return {k: pdict[k] for k in metrics}
 
     return hypotest
