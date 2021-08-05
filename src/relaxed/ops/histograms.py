@@ -19,7 +19,7 @@ def hist_kde(
     bins: ArrayDevice,
     bandwidth: Optional[float] = None,
     density: bool = False,
-    reflect_infinities: bool = True,
+    reflect_infinities: bool = False,
 ) -> ArrayDevice:
     """
     Differentiable implementation of a histogram using kernel density estimation.

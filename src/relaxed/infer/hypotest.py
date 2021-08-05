@@ -20,6 +20,7 @@ jax.config.update("jax_enable_x64", True)
 def make_hypotest(
     model_maker: Callable[..., tuple[Any, ArrayDevice]],
     solver_kwargs: dict[str, Any] = dict(pdf_transform=True),
+    metrics: list[str] = ["CLs"],
 ) -> Callable[[ArrayDevice, float, list[str]], dict[str, float]]:
     """Instatiate a hypotheses test based on a model maker.
 
@@ -40,7 +41,6 @@ def make_hypotest(
     def hypotest(
         hyperpars: ArrayDevice,
         test_mu: float,
-        metrics: list[str] = ["CLs"],
         model_kwargs: dict[str, Any] = dict(),
     ) -> dict[str, float]:
         # g_fitter = global_fit(model_maker, **solver_kwargs)
@@ -50,7 +50,7 @@ def make_hypotest(
         exp_data = m.expected_data(bonlypars)
         bounds = jnp.array(m.config.suggested_bounds())
         # map these
-        initval = jnp.asarray([test_mu, 1.0])
+        initval = jnp.array(m.config.suggested_init())
         transforms = solver_kwargs.get("pdf_transform", False)
         if transforms:
             initval = to_inf_vec(initval, bounds)
@@ -77,8 +77,24 @@ def make_hypotest(
         altval = 0
         CLb = 1 - pyhf.tensorlib.normal_cdf(altval)
         CLs = CLsb / CLb
+        pull = jnp.array(
+            [
+                (numerator - jnp.array(m.config.suggested_init()))[
+                    m.config.par_order.index(k)
+                ]
+                / m.config.param_set(k).width()[0]
+                for k in m.config.par_order
+                if m.config.param_set(k).constrained
+            ]
+        )
+        pdict = dict(
+            CLs=CLs,
+            p_sb=CLsb,
+            p_b=CLb,
+            profile_likelihood=profile_likelihood,
+            pull=pull,
+        )
 
-        pdict = dict(CLs=CLs, p_sb=CLsb, p_b=CLb, profile_likelihood=profile_likelihood)
         return {k: pdict[k] for k in metrics}
 
     return hypotest
