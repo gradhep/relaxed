@@ -1,6 +1,8 @@
 """Calculate expected CLs values with hypothesis tests."""
 from __future__ import annotations
 
+from relaxed.ops.fisher_information import cramer_rao_uncert
+
 __all__ = ["make_hypotest"]
 
 from typing import Any, Callable
@@ -87,12 +89,25 @@ def make_hypotest(
                 if m.config.param_set(k).constrained
             ]
         )
+
+        # should use global mle pars -- here we know them(?)
+        errors = cramer_rao_uncert(m, bonlypars, exp_data)
+
+        pull_err = jnp.array(
+            [
+                errors[m.config.par_slice(k)] / m.config.param_set(k).width()[0]
+                for k in m.config.par_order
+                if m.config.param_set(k).constrained
+            ]
+        )
+
         pdict = dict(
             CLs=CLs,
             p_sb=CLsb,
             p_b=CLb,
             profile_likelihood=profile_likelihood,
             pull=pull,
+            pull_err=pull_err,
         )
 
         return {k: pdict[k] for k in metrics}
