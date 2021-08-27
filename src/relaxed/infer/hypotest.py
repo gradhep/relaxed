@@ -90,7 +90,7 @@ def make_hypotest(
             ]
         )
 
-        # should use global mle pars -- here we know them(?)
+        # should use global mle pars -- here we know them since exp_data came from bonlypars
         errors = cramer_rao_uncert(m, bonlypars, exp_data)
 
         pull_err = jnp.array(
@@ -108,6 +108,7 @@ def make_hypotest(
             profile_likelihood=profile_likelihood,
             pull=pull,
             pull_err=pull_err,
+            errors=errors,
         )
 
         return {k: pdict[k] for k in metrics}
