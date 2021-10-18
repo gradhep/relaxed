@@ -12,6 +12,14 @@
 [![Gitter][gitter-badge]][gitter-link]
 
 
+## dev guidelines:
+
+in your venv of choice:
+
+```
+pip install -e .[dev]
+pre-commit install
+```
 
 
 [actions-badge]:            https://github.com/gradhep/relaxed/workflows/CI/badge.svg
