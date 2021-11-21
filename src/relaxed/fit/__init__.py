@@ -1,3 +1,4 @@
-__all__ = ["constrained_fit"]
+__all__ = ["constrained_fit", "global_fit"]
 
-from .constrained import constrained_fit
+from .constrained_fit import constrained_fit
+from .global_fit import global_fit

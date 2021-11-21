@@ -1,6 +1,8 @@
 """instantiate routines for fitting a model given a fixed param of intrest."""
 from __future__ import annotations
 
+__all__ = ["constrained_fit"]
+
 from typing import Any, Callable
 
 import jax
