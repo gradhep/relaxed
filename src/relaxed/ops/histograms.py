@@ -1,26 +1,24 @@
-"""differentiable implementations of histograms."""
+"""differentiable implementation of the histogram via kernel density estimation."""
+from __future__ import annotations
 
-__all__ = ["hist_kde"]
+__all__ = ("hist_kde",)
 
-from typing import Optional
+from functools import partial
 
+import jax
 import jax.numpy as jnp
 import jax.scipy as jsp
-
-from .._types import ArrayDevice
-
-# from functools import partial
+from chex import Array
 
 
-# for when we support current jax versions
-# @partial(jax.jit, static_argnames = ['density', 'reflect_infinities'])
+@partial(jax.jit, static_argnames=["density", "reflect_infinities"])
 def hist_kde(
-    events: ArrayDevice,
-    bins: ArrayDevice,
-    bandwidth: Optional[float] = None,
+    events: Array,
+    bins: Array,
+    bandwidth: float | None = None,
     density: bool = False,
     reflect_infinities: bool = False,
-) -> ArrayDevice:
+) -> Array:
     """
     Differentiable implementation of a histogram using kernel density estimation.
 
