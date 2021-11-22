@@ -9,9 +9,21 @@ write_to = "src/relaxed/_version.py"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config", "--cov=relaxed", "--cov-report html", "--cov-report term-missing"]
+addopts = [
+    "-ra",
+    "--showlocals",
+    "--strict-markers",
+    "--strict-config",
+    "--cov=relaxed",
+    "--cov-report=html",
+    "--cov-report=term-missing"
+]
 xfail_strict = true
-filterwarnings = ["error"]
+filterwarnings = [
+    "error",
+    "ignore:No GPU/TPU found, falling back to CPU.:UserWarning",
+    "ignore:the imp module is deprecated in favour of importlib.*:DeprecationWarning"
+]
 testpaths = [
     "tests",
 ]
