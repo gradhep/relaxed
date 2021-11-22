@@ -44,11 +44,11 @@ def global_fit(
     def make_model(
         hyper_pars: tuple[ArrayDevice, float],
     ) -> tuple[float, Callable[[ArrayDevice], float]]:
-        
+
         m, bonlypars = model_maker(hyper_pars, **model_kwargs)
 
         bounds = jnp.array(m.config.suggested_bounds())
-      
+
         exp_bonly_data = m.expected_data(bonlypars, include_auxdata=True)
 
         def expected_logpdf(
