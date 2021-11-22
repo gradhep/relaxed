@@ -1,7 +1,7 @@
 """differentiable implementation of the histogram via kernel density estimation."""
 from __future__ import annotations
 
-__all__ = ("hist_kde",)
+__all__ = ("hist",)
 
 from functools import partial
 
@@ -12,10 +12,10 @@ from chex import Array
 
 
 @partial(jax.jit, static_argnames=["density", "reflect_infinities"])
-def hist_kde(
+def hist(
     events: Array,
     bins: Array,
-    bandwidth: float | None = None,
+    bandwidth: float,  # | None = None,
     density: bool = False,
     reflect_infinities: bool = False,
 ) -> Array:
@@ -38,7 +38,7 @@ def hist_kde(
     -------
     counts: 1D array of binned counts
     """
-    bandwidth = bandwidth or events.shape[-1] ** -0.25  # Scott's rule
+    # bandwidth = bandwidth or events.shape[-1] ** -0.25  # Scott's rule
 
     bins = jnp.array([-jnp.inf, *bins, jnp.inf]) if reflect_infinities else bins
 

@@ -74,11 +74,6 @@ repos:
   - id: mypy
     files: src
 
-- repo: https://github.com/codespell-project/codespell
-  rev: v2.1.0
-  hooks:
-  - id: codespell
-
 - repo: https://github.com/shellcheck-py/shellcheck-py
   rev: v0.7.2.1
   hooks:
