@@ -57,6 +57,11 @@ def test_hist_grad_validity():
     relaxed_grads = kde_grads(bw=0.15, nsamples=nsamples).mean(axis=0) / nsamples
 
     def true_grad(mu, bins):
+        """Analytic grad of the mean height over an interval of a normal dist wrt mu.
+        The full equation in latex:
+        $\frac{\\partial}{\\partial\\mu}bin_{\\mathsf{true}}(\\mu) =
+        -\frac{1}{\\sqrt{2\\pi}}\\left[\\left(e^{-\frac{(b-\\mu)^2}{2}}\right)
+        - \\left( e^{-\frac{(a-\\mu)^2}{2}}\right)\right]$"""
         b = bins[1:]  # ending bin edges ||<-
         a = bins[:-1]  # starting bin edges ->||
         return -(1 / ((2 * jnp.pi) ** 0.5)) * (
