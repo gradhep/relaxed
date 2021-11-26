@@ -3,7 +3,7 @@ from functools import partial
 import jax.numpy as jnp
 import numpy as np
 import pytest
-from jax import grad, vmap
+from jax import jacrev, vmap
 from jax.random import PRNGKey, normal
 
 import relaxed
@@ -48,13 +48,13 @@ def test_hist_grad_validity(bins):
 
     def bin_height(mu, jrng, bw, nsamples, bins):
         points = gen_points(mu, jrng, nsamples)
-        return relaxed.hist(points, bins, bandwidth=bw)[2]  # third bin (arbitrary)
+        return relaxed.hist(points, bins, bandwidth=bw)
 
     mus = jnp.linspace(-2, 2, 100)
 
     def kde_grads(bw, nsamples):
         rngs = [PRNGKey(i) for i in range(5)]
-        grad_fun = grad(bin_height)
+        grad_fun = jacrev(bin_height)
         grads = []
         for jrng in rngs:
             get_grads = vmap(
@@ -77,7 +77,7 @@ def test_hist_grad_validity(bins):
         )
 
     true_grad_many = vmap(partial(true_grad, bins=bins))
-    grads = (true_grad_many(mus))[:, 2]  # third bin (again, arbitrary)
+    grads = true_grad_many(mus)
 
     assert np.allclose(
         relaxed_grads, grads, atol=0.02
