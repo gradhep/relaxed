@@ -76,8 +76,7 @@ def test_hist_grad_validity(bins):
             jnp.exp(-((b - mu) ** 2) / 2) - jnp.exp(-((a - mu) ** 2) / 2)
         )
 
-    true_grad_many = vmap(partial(true_grad, bins=bins))
-    grads = true_grad_many(mus)
+    grads = vmap(partial(true_grad, bins=bins))(mus)
 
     assert np.allclose(
         relaxed_grads, grads, atol=0.02
