@@ -92,12 +92,14 @@ def test_hist_grad_validity(bins):
     grads = vmap(partial(true_grad, bins=bins))(mus)
 
     assert np.allclose(
-        relaxed_grads, grads, atol=0.01
-    )  # atol quite tight, 0.001 will fail (outliers)
+        relaxed_grads, grads, rtol=0.1
+    )  # rtol is a bit high because the grads are a bit noisy
 
 
 def test_fisher_info(example_model):
-    model = example_model.logpdf
+    def model(pars, data):
+        return example_model.logpdf(pars, data)[0]
+
     pars = example_model.config.suggested_init()
     data = example_model.expected_data(pars)
 
@@ -139,8 +141,11 @@ def test_fisher_uncerts_validity():
 
 def test_fisher_info_grad(example_model):
     def pipeline(x):
-        model = example_model.logpdf
         pars = example_model.config.suggested_init()
+
+        def model(pars, data):
+            return example_model.logpdf(pars, data)[0]
+
         data = example_model.expected_data(pars)
         return relaxed.fisher_info(model, pars * x, data * x)
 
@@ -149,7 +154,9 @@ def test_fisher_info_grad(example_model):
 
 def test_fisher_uncert_grad(example_model):
     def pipeline(x):
-        model = example_model.logpdf
+        def model(pars, data):
+            return example_model.logpdf(pars, data)[0]
+
         pars = example_model.config.suggested_init()
         data = example_model.expected_data(pars)
         return relaxed.cramer_rao_uncert(model, pars * x, data * x)

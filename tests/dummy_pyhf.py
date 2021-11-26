@@ -39,7 +39,7 @@ class Model:
         main = pyhf.probability.Poisson(main).log_prob(maindata)
         constraint = pyhf.probability.Poisson(gamma * self.factor).log_prob(auxdata)
         # sum log probs over bins
-        return jnp.asarray([jnp.sum(main + constraint, axis=0)])
+        return [jnp.sum(jnp.asarray([main + constraint]), axis=None)]
 
 
 def uncorrelated_background(signal_data, bkg_data, bkg_uncerts):

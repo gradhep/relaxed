@@ -2,8 +2,10 @@ from __future__ import annotations
 
 __all__ = ("fit",)
 
+from functools import partial
 from typing import TYPE_CHECKING, Callable, cast
 
+import jax
 from chex import Array
 
 if TYPE_CHECKING:
@@ -22,12 +24,12 @@ def global_fit_objective(data: Array, model: pyhf.Model) -> Callable[[Array], fl
     return fit_objective
 
 
-# @partial(jax.jit, static_argnames=["model"]) # forward pass
+@partial(jax.jit, static_argnames=["model"])  # forward pass
 def fit(
     data: Array,
     model: pyhf.Model,
     init_pars: Array,
-    lr: float = 4e-3,
+    lr: float = 1e-3,
 ) -> Array:
     obj = global_fit_objective(data, model)
     fit_res = _minimize(obj, init_pars, lr)

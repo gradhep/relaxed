@@ -2,8 +2,10 @@ from __future__ import annotations
 
 __all__ = ("fixed_poi_fit",)
 
+from functools import partial
 from typing import TYPE_CHECKING, Callable, cast
 
+import jax
 import jax.numpy as jnp
 from chex import Array
 
@@ -26,13 +28,13 @@ def fixed_poi_fit_objective(
     return fit_objective
 
 
-# @partial(jax.jit, static_argnames=["model"]) # forward pass
+@partial(jax.jit, static_argnames=["model"])  # forward pass
 def fixed_poi_fit(
     data: Array,
     model: pyhf.Model,
     init_pars: Array,
     poi_condition: float,
-    lr: float = 4e-3,  # arbitrary
+    lr: float = 1e-3,  # arbitrary
 ) -> Array:
     obj = fixed_poi_fit_objective(data, model, poi_condition)
     fit_res = _minimize(obj, init_pars, lr)
