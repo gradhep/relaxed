@@ -32,6 +32,18 @@ def test_hist_validity_density(big_sample, bins):
     assert np.allclose(numpy_hist, relaxed_hist)
 
 
+def test_hist_validity_infinities(big_sample, bins):
+    inf_bins = [-np.inf, *bins, np.inf]
+    numpy_hist = np.histogram(big_sample, bins=inf_bins, density=True)[0]
+    numpy_hist[1] += numpy_hist[0]
+    numpy_hist[-2] += numpy_hist[-1]
+    numpy_hist = numpy_hist[1:-1]
+    relaxed_hist = relaxed.hist(
+        big_sample, bins=bins, bandwidth=1e-6, density=True, reflect_infinities=True
+    )
+    assert np.allclose(numpy_hist, relaxed_hist)
+
+
 def test_hist_approx_validity(big_sample, bins):
     """Roughly test validity of hist for wider bandwidth (and a more loose criterion).
     Useful because it's the same bandwidth (0.15) as the gradient test below."""
