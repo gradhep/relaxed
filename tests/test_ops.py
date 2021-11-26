@@ -11,24 +11,35 @@ import relaxed
 
 @pytest.fixture
 def big_sample():
-    return normal(PRNGKey(0), shape=(1000,))
+    return normal(PRNGKey(0), shape=(5000,))
 
 
-def test_hist_validity(big_sample):
-    bins = np.linspace(-5, 5, 10)
+@pytest.fixture
+def bins():
+    return np.linspace(-5, 5, 6)
+
+
+def test_hist_validity(big_sample, bins):
     numpy_hist = np.histogram(big_sample, bins=bins)[0]
-    relaxed_hist = relaxed.hist(big_sample, bins=bins, bandwidth=0.0001)
+    relaxed_hist = relaxed.hist(big_sample, bins=bins, bandwidth=1e-5)
     assert np.allclose(numpy_hist, relaxed_hist)
 
 
-def test_hist_validity_density(big_sample):
-    bins = np.linspace(-5, 5, 10)
+def test_hist_validity_density(big_sample, bins):
     numpy_hist = np.histogram(big_sample, bins=bins, density=True)[0]
-    relaxed_hist = relaxed.hist(big_sample, bins=bins, bandwidth=0.0001, density=True)
+    relaxed_hist = relaxed.hist(big_sample, bins=bins, bandwidth=1e-5, density=True)
     assert np.allclose(numpy_hist, relaxed_hist)
 
 
-def test_hist_grad_validity():
+def test_hist_approx_validity(big_sample, bins):
+    """Roughly test validity of hist for wider bandwidth (and a more loose criterion).
+    Useful because it's the same bandwidth as the gradient test below."""
+    numpy_hist = np.histogram(big_sample, bins=bins, density=True)[0]
+    relaxed_hist = relaxed.hist(big_sample, bins=bins, bandwidth=0.15, density=True)
+    assert np.allclose(numpy_hist, relaxed_hist, atol=0.01)
+
+
+def test_hist_grad_validity(bins):
     """Test the grads of the kde hist vs the analyitc grads of a normal dist wrt mu."""
 
     def gen_points(mu, jrng, nsamples):
@@ -39,7 +50,6 @@ def test_hist_grad_validity():
         points = gen_points(mu, jrng, nsamples)
         return relaxed.hist(points, bins, bandwidth=bw)[2]  # third bin (arbitrary)
 
-    bins = jnp.linspace(-5, 5, 6)
     mus = jnp.linspace(-2, 2, 100)
 
     def kde_grads(bw, nsamples):
@@ -67,11 +77,11 @@ def test_hist_grad_validity():
         )
 
     true_grad_many = vmap(partial(true_grad, bins=bins))
-    grads = (true_grad_many(mus))[:, 2]  # third bin
+    grads = (true_grad_many(mus))[:, 2]  # third bin (again, arbitrary)
 
     assert np.allclose(
-        relaxed_grads, grads, atol=2e-2
-    )  # atol quite tight, 1e-2 will fail (outliers)
+        relaxed_grads, grads, atol=0.02
+    )  # atol quite tight, 0.01 will fail (outliers)
 
 
 # def test_fisher_info():
