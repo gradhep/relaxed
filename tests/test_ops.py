@@ -1,6 +1,9 @@
-import jax
+from functools import partial
+
+import jax.numpy as jnp
 import numpy as np
 import pytest
+from jax import grad, vmap
 from jax.random import PRNGKey, normal
 
 import relaxed
@@ -14,15 +17,58 @@ def big_sample():
 def test_hist_validity(big_sample):
     bins = np.linspace(-5, 5, 10)
     numpy_hist = np.histogram(big_sample, bins=bins)[0]
-    jax_hist = relaxed.hist(big_sample, bins=bins, bandwidth=0.0001)
-    assert np.allclose(numpy_hist, jax_hist)
+    relaxed_hist = relaxed.hist(big_sample, bins=bins, bandwidth=0.0001)
+    assert np.allclose(numpy_hist, relaxed_hist)
 
 
-def test_hist_grad(big_sample):
-    def modified_sample(x):
-        data = big_sample * x
-        return relaxed.hist(data, bins=np.linspace(-5, 5, 10), bandwidth=0.01)[1]
+def test_hist_validity_density(big_sample):
+    bins = np.linspace(-5, 5, 10)
+    numpy_hist = np.histogram(big_sample, bins=bins, density=True)[0]
+    relaxed_hist = relaxed.hist(big_sample, bins=bins, bandwidth=0.0001, density=True)
+    assert np.allclose(numpy_hist, relaxed_hist)
 
-    assert jax.value_and_grad(modified_sample)(
-        7.0
-    )  # [1] == 1.0 # TODO: what should it be?
+
+def test_hist_grad_validity():
+    """Test the grads of the kde hist vs the analyitc grads of a normal dist wrt mu."""
+
+    def gen_points(mu, jrng, nsamples):
+        points = normal(jrng, shape=(nsamples,)) + mu
+        return points
+
+    def bin_height(mu, jrng, bw, nsamples, bins):
+        points = gen_points(mu, jrng, nsamples)
+        return relaxed.hist(points, bins, bandwidth=bw)[2]  # third bin (arbitrary)
+
+    bins = jnp.linspace(-5, 5, 6)
+    mus = jnp.linspace(-2, 2, 100)
+
+    def kde_grads(bw, nsamples):
+        rngs = [PRNGKey(i) for i in range(5)]
+        grad_fun = grad(bin_height)
+        grads = []
+        for jrng in rngs:
+            get_grads = vmap(
+                partial(grad_fun, jrng=jrng, bw=bw, nsamples=nsamples, bins=bins)
+            )
+            grads.append(get_grads(mus))
+        return jnp.asarray(grads)
+
+    nsamples = 5000
+    relaxed_grads = kde_grads(bw=0.15, nsamples=nsamples).mean(axis=0) / nsamples
+
+    def true_grad(mu, bins):
+        b = bins[1:]  # ending bin edges ||<-
+        a = bins[:-1]  # starting bin edges ->||
+        return -(1 / ((2 * jnp.pi) ** 0.5)) * (
+            jnp.exp(-((b - mu) ** 2) / 2) - jnp.exp(-((a - mu) ** 2) / 2)
+        )
+
+    true_grad_many = vmap(partial(true_grad, bins=bins))
+    grads = (true_grad_many(mus))[:, 2]  # third bin
+
+    assert np.allclose(
+        relaxed_grads, grads, atol=2e-2
+    )  # atol quite tight, 1e-2 will fail (outliers)
+
+
+# def test_fisher_info():
