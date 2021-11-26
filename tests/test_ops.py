@@ -2,6 +2,7 @@ from functools import partial
 
 import jax.numpy as jnp
 import numpy as np
+import pyhf
 import pytest
 from jax import jacrev, vmap
 from jax.random import PRNGKey, normal
@@ -33,7 +34,7 @@ def test_hist_validity_density(big_sample, bins):
 
 def test_hist_approx_validity(big_sample, bins):
     """Roughly test validity of hist for wider bandwidth (and a more loose criterion).
-    Useful because it's the same bandwidth as the gradient test below."""
+    Useful because it's the same bandwidth (0.15) as the gradient test below."""
     numpy_hist = np.histogram(big_sample, bins=bins, density=True)[0]
     relaxed_hist = relaxed.hist(big_sample, bins=bins, bandwidth=0.15, density=True)
     assert np.allclose(numpy_hist, relaxed_hist, atol=0.01)
@@ -83,4 +84,62 @@ def test_hist_grad_validity(bins):
     )  # atol quite tight, 0.001 will fail (outliers)
 
 
-# def test_fisher_info():
+def test_fisher_info(example_model):
+    model = example_model.logpdf
+    pars = example_model.config.suggested_init()
+    data = example_model.expected_data(pars)
+
+    # this is just the computed output, assumed correct
+    # probably needs a more thorough analytic test
+    res = np.array([[0.90909091, 9.09090909], [9.09090909, 290.90909091]])
+
+    assert np.allclose(relaxed.fisher_info(model, pars, data), res)
+
+
+def test_fisher_uncerts_validity():
+    pyhf.set_backend("jax", pyhf.optimize.minuit_optimizer(verbose=1))
+
+    m = pyhf.simplemodels.uncorrelated_background([5, 5], [50, 50], [5, 5])
+
+    data = jnp.array([50.0, 50.0] + m.config.auxdata)
+
+    fit_res = pyhf.infer.mle.fit(
+        data,
+        m,
+        return_uncertainties=True,
+        par_bounds=[
+            [-1, 10],
+            [-1, 10],
+            [-1, 10],
+        ],  # fit @ boundary produces unstable uncerts
+    )
+
+    # minuit fit uncerts
+    mle_pars, mle_uncerts = fit_res[:, 0], fit_res[:, 1]
+
+    # uncertainties from autodiff hessian
+    def lpdf(p, d):
+        return m.logpdf(p, d)[0]
+
+    relaxed_uncerts = relaxed.cramer_rao_uncert(lpdf, mle_pars, data)
+    assert np.allclose(mle_uncerts, relaxed_uncerts, rtol=5e-2)
+
+
+def test_fisher_info_grad(example_model):
+    def pipeline(x):
+        model = example_model.logpdf
+        pars = example_model.config.suggested_init()
+        data = example_model.expected_data(pars)
+        return relaxed.fisher_info(model, pars * x, data * x)
+
+    jacrev(pipeline)(4.0)  # just check you can calc it w/o exception
+
+
+def test_fisher_uncert_grad(example_model):
+    def pipeline(x):
+        model = example_model.logpdf
+        pars = example_model.config.suggested_init()
+        data = example_model.expected_data(pars)
+        return relaxed.cramer_rao_uncert(model, pars * x, data * x)
+
+    jacrev(pipeline)(4.0)  # just check you can calc it w/o exception

@@ -19,6 +19,7 @@ class Model:
     """Dummy class to mimic the functionality of `pyhf.Model`."""
 
     def __init__(self, spec):
+        pyhf.set_backend("jax")
         self.sig, self.nominal, self.uncert = spec
         self.factor = (self.nominal / self.uncert) ** 2
         self.aux = 1.0 * self.factor
@@ -31,6 +32,7 @@ class Model:
         return jnp.concatenate([expected_main, aux_data])
 
     def logpdf(self, pars, data):
+
         maindata, auxdata = data
         main, _ = self.expected_data(pars)
         _, gamma = pars
