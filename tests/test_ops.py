@@ -16,18 +16,18 @@ def big_sample():
 
 @pytest.fixture
 def bins():
-    return np.linspace(-5, 5, 6)
+    return np.linspace(-5, 5, 10)
 
 
 def test_hist_validity(big_sample, bins):
     numpy_hist = np.histogram(big_sample, bins=bins)[0]
-    relaxed_hist = relaxed.hist(big_sample, bins=bins, bandwidth=1e-5)
+    relaxed_hist = relaxed.hist(big_sample, bins=bins, bandwidth=1e-6)
     assert np.allclose(numpy_hist, relaxed_hist)
 
 
 def test_hist_validity_density(big_sample, bins):
     numpy_hist = np.histogram(big_sample, bins=bins, density=True)[0]
-    relaxed_hist = relaxed.hist(big_sample, bins=bins, bandwidth=1e-5, density=True)
+    relaxed_hist = relaxed.hist(big_sample, bins=bins, bandwidth=1e-6, density=True)
     assert np.allclose(numpy_hist, relaxed_hist)
 
 
@@ -79,8 +79,8 @@ def test_hist_grad_validity(bins):
     grads = vmap(partial(true_grad, bins=bins))(mus)
 
     assert np.allclose(
-        relaxed_grads, grads, atol=0.02
-    )  # atol quite tight, 0.01 will fail (outliers)
+        relaxed_grads, grads, atol=0.01
+    )  # atol quite tight, 0.001 will fail (outliers)
 
 
 # def test_fisher_info():
