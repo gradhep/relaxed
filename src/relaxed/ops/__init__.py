@@ -4,5 +4,5 @@ __all__ = (
     "cramer_rao_uncert",
 )
 
-from .fisher_information import cramer_rao_uncert, fisher_info
-from .histograms import hist
+from relaxed.ops.fisher_information import cramer_rao_uncert, fisher_info
+from relaxed.ops.histograms import hist

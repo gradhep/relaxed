@@ -1,3 +1,3 @@
 __all__ = ("hypotest",)
 
-from .hypothesis_test import hypotest
+from relaxed.infer.hypothesis_test import hypotest
