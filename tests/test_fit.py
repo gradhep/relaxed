@@ -42,11 +42,12 @@ def test_fixed_poi_fit():
         bkg_data=jnp.asarray([50]),
         bkg_uncerts=jnp.asarray([5]),
     )
-
+    init = np.asarray(example_model.config.suggested_init())
+    init = jnp.asarray(np.delete(init, example_model.config.poi_index))
     relaxed_mle = relaxed.mle.fixed_poi_fit(
         model=example_model,
         data=example_model.expected_data(analytic_pars),
-        init_pars=example_model.config.suggested_init(),
+        init_pars=init,
         lr=1e-3,
         poi_condition=1.0,
     )
@@ -68,7 +69,7 @@ def test_fixed_poi_fit_grad():
         mle_pars = relaxed.mle.fixed_poi_fit(
             model=model,
             data=model.expected_data(jnp.array([0.0, 1.0])),
-            init_pars=model.config.suggested_init(),
+            init_pars=model.config.suggested_init()[1:],
             lr=1e-2,
             poi_condition=1.0,
         )

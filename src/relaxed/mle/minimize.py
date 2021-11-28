@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Callable
+from typing import Any, Callable
 
 __all__ = ("_minimize",)
 
@@ -14,12 +14,14 @@ from chex import Array
 
 # try wrapping obj with closure_convert
 @partial(jax.jit, static_argnames=["objective_fn"])  # forward pass
-def _minimize(objective_fn: Callable[..., float], init_pars: Array, lr: float) -> Array:
-    converted_fn, aux_pars = jax.closure_convert(objective_fn, init_pars)
+def _minimize(
+    objective_fn: Callable[..., float], init_pars: Array, lr: float, *obj_args: Any
+) -> Array:
+    converted_fn, aux_pars = jax.closure_convert(objective_fn, init_pars, *obj_args)
     # aux_pars seems to be empty? took that line from jax docs example...
     solver = jaxopt.OptaxSolver(
         fun=converted_fn,
         opt=optax.adam(lr),
         implicit_diff=True,
     )
-    return solver.run(init_pars, *aux_pars)[0]
+    return solver.run(init_pars, *obj_args, *aux_pars)[0]
