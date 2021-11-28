@@ -4,7 +4,7 @@ import pyhf
 from dummy_pyhf import uncorrelated_background
 from jax import jacrev
 
-import relaxed.mle
+import relaxed
 
 
 def test_fit(example_model):
