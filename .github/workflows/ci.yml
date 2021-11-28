@@ -30,7 +30,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.7", "3.10"]
+        python-version: ["3.7", "3.9"]
         runs-on: [ubuntu-latest, macos-latest]
 
     steps:
@@ -42,9 +42,6 @@ jobs:
 
     - name: Install package
       run: python -m pip install .[test]
-
-    #- name: Install pyhf @ diffable model branch
-    #  run: python -m pip install git+http://github.com/scikit-hep/pyhf.git@make_difffable_model_ctor
 
     - name: Test package
       run: python -m pytest -ra
