@@ -39,7 +39,7 @@ def fixed_poi_fit(
     model: pyhf.Model,
     init_pars: Array,
     poi_condition: float,
-    lr: float = 1e-3,  # arbitrary
+    lr: float = 1e-2,  # arbitrary
 ) -> Array:
     obj = fixed_poi_fit_objective(data, model)
     fit_res = _minimize(obj, init_pars, lr, poi_condition)

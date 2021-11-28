@@ -29,7 +29,7 @@ def fit(
     data: Array,
     model: pyhf.Model,
     init_pars: Array,
-    lr: float = 1e-3,
+    lr: float = 1e-2,
 ) -> Array:
     obj = global_fit_objective(data, model)
     fit_res = _minimize(obj, init_pars, lr)

@@ -48,7 +48,7 @@ def test_fixed_poi_fit():
         model=example_model,
         data=example_model.expected_data(analytic_pars),
         init_pars=init,
-        lr=1e-3,
+        lr=1e-2,
         poi_condition=1.0,
     )
 
