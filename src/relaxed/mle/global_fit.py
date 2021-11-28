@@ -24,7 +24,7 @@ def global_fit_objective(data: Array, model: pyhf.Model) -> Callable[[Array], fl
     return fit_objective
 
 
-@partial(jax.jit, static_argnames=["model"])  # forward pass
+@partial(jax.jit, static_argnames=["model"])
 def fit(
     data: Array,
     model: pyhf.Model,

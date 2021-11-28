@@ -17,7 +17,7 @@ def big_sample():
 
 @pytest.fixture
 def bins():
-    return np.linspace(-5, 5, 10)
+    return np.linspace(-5, 5, 6)
 
 
 def test_hist_validity(big_sample, bins):
@@ -92,8 +92,8 @@ def test_hist_grad_validity(bins):
     grads = vmap(partial(true_grad, bins=bins))(mus)
 
     assert np.allclose(
-        relaxed_grads, grads, rtol=0.1
-    )  # rtol is a bit high because the grads are a bit noisy
+        relaxed_grads, grads, atol=0.01, rtol=0.05
+    )  # tols are a bit high because the grads are a little noisy/biased
 
 
 def test_fisher_info(example_model):
