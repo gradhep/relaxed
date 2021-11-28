@@ -1,22 +1,25 @@
 from __future__ import annotations
 
-__all__ = ["fisher_info", "cramer_rao_uncert"]
+__all__ = (
+    "fisher_info",
+    "cramer_rao_uncert",
+)
 
-from typing import TYPE_CHECKING
+from typing import Callable
 
 import jax
 import jax.numpy as jnp
-
-from .._types import Array
-
-if TYPE_CHECKING:
-    import pyhf
+from chex import Array
 
 
-def fisher_info(model: pyhf.Model, pars: Array, data: Array) -> Array:
-    return -jax.hessian(model.logpdf)(pars, data)[0]  # since logpdf returns [value]
+def fisher_info(
+    logpdf: Callable[[Array, Array], float], pars: Array, data: Array
+) -> Array:
+    return -jax.hessian(logpdf)(pars, data)
 
 
-def cramer_rao_uncert(model: pyhf.Model, pars: Array, data: Array) -> Array:
-    inv = jnp.linalg.inv(fisher_info(model, pars, data))
+def cramer_rao_uncert(
+    logpdf: Callable[[Array, Array], float], pars: Array, data: Array
+) -> Array:
+    inv = jnp.linalg.inv(fisher_info(logpdf, pars, data))
     return jnp.sqrt(jnp.diagonal(inv))
