@@ -1,10 +1,11 @@
 # relaxed
 
 [![Actions Status][actions-badge]][actions-link]
-[![Documentation Status][rtd-badge]][rtd-link]
+[![codecov](https://codecov.io/gh/gradhep/relaxed/branch/main/graph/badge.svg?token=CJLGC7H7NY)](https://codecov.io/gh/gradhep/relaxed)
 [![Code style: black][black-badge]][black-link]
 [![PyPI version][pypi-version]][pypi-link]
 [![PyPI platforms][pypi-platforms]][pypi-link]
+[![Documentation Status][rtd-badge]][rtd-link]
 
 
 
