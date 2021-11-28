@@ -33,6 +33,7 @@ def test_hist_validity_density(big_sample, bins):
 
 
 def test_hist_validity_infinities(big_sample, bins):
+    """Test the reflection of excess density @ [-inf,inf] into the edge bins."""
     inf_bins = [-np.inf, *bins, np.inf]
     numpy_hist = np.histogram(big_sample, bins=inf_bins, density=True)[0]
     numpy_hist[1] += numpy_hist[0]
