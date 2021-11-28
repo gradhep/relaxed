@@ -1,3 +1,3 @@
 __all__ = ("hypotest",)
 
-from .cls import hypotest
+from .hypothesis_test import hypotest

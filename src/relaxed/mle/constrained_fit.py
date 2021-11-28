@@ -26,7 +26,7 @@ def fixed_poi_fit_objective(
     ) -> float:  # NLL
         """lhood_pars_to_optimize: either all pars, or just nuisance pars"""
         # pyhf.Model.logpdf returns list[float]
-        blank = jnp.zeros_like(model.config.suggested_init())
+        blank = jnp.zeros_like(jnp.asarray(model.config.suggested_init()))
         blank += lhood_pars_to_optimize
         return cast(float, -model.logpdf(blank.at[poi_idx].set(poi_condition), data)[0])
 
@@ -43,7 +43,7 @@ def fixed_poi_fit(
 ) -> Array:
     obj = fixed_poi_fit_objective(data, model)
     fit_res = _minimize(obj, init_pars, lr, poi_condition)
-    blank = jnp.zeros_like(model.config.suggested_init())
+    blank = jnp.zeros_like(jnp.asarray(model.config.suggested_init()))
     blank += fit_res
     poi_idx = model.config.poi_index
     return blank.at[poi_idx].set(poi_condition)
