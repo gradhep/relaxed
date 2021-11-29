@@ -5,9 +5,9 @@ __all__ = ("fixed_poi_fit",)
 from functools import partial
 from typing import TYPE_CHECKING, Callable, cast
 
-import jax
 import jax.numpy as jnp
 from chex import Array
+from jax import jit
 
 if TYPE_CHECKING:
     import pyhf
@@ -33,7 +33,7 @@ def fixed_poi_fit_objective(
     return fit_objective
 
 
-@partial(jax.jit, static_argnames=["model"])  # forward pass
+@partial(jit, static_argnames=["model"])  # forward pass
 def fixed_poi_fit(
     data: Array,
     model: pyhf.Model,

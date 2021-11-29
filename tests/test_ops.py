@@ -163,3 +163,30 @@ def test_fisher_uncert_grad(example_model):
         return relaxed.cramer_rao_uncert(model, pars * x, data * x)
 
     jacrev(pipeline)(4.0)  # just check you can calc it w/o exception
+
+
+def test_gaussianity():
+    """Test that the gaussianity of the distribution is preserved."""
+    pyhf.set_backend("jax")
+    m = pyhf.simplemodels.uncorrelated_background([5, 5], [50, 50], [5, 5])
+    pars = jnp.asarray(m.config.suggested_init())
+    data = jnp.asarray(m.expected_data(pars))
+    cov_approx = jnp.linalg.inv(
+        relaxed.fisher_info(lambda d, p: m.logpdf(d, p)[0], pars, data)
+    )
+    relaxed.gaussianity(m, pars, cov_approx, data, PRNGKey(0))
+
+
+def test_gaussianity_grad(example_model):
+    def pipeline(x):
+        def model(pars, data):
+            return example_model.logpdf(pars, data)[0]
+
+        pars = example_model.config.suggested_init()
+        data = example_model.expected_data(pars)
+        cov_approx = jnp.linalg.inv(relaxed.fisher_info(model, pars, data))
+        return relaxed.gaussianity(
+            example_model, pars * x, cov_approx * x, data * x, PRNGKey(0)
+        )
+
+    jacrev(pipeline)(4.0)  # just check you can calc it w/o exception

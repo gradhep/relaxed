@@ -5,13 +5,13 @@ __all__ = ("hist",)
 
 from functools import partial
 
-import jax
 import jax.numpy as jnp
 import jax.scipy as jsp
 from chex import Array
+from jax import jit
 
 
-@partial(jax.jit, static_argnames=["density", "reflect_infinities"])
+@partial(jit, static_argnames=["density", "reflect_infinities"])
 def hist(
     events: Array,
     bins: Array,

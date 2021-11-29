@@ -5,15 +5,15 @@ __all__ = ("hypotest",)
 
 from functools import partial
 
-import jax
 import jax.numpy as jnp
 import pyhf
 from chex import Array
+from jax import jit
 
 from ..mle import fit, fixed_poi_fit
 
 
-@partial(jax.jit, static_argnames=["model", "return_mle_pars"])  # forward pass
+@partial(jit, static_argnames=["model", "return_mle_pars"])  # forward pass
 def hypotest(
     test_poi: float,
     data: Array,

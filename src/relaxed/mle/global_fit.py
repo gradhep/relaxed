@@ -5,8 +5,8 @@ __all__ = ("fit",)
 from functools import partial
 from typing import TYPE_CHECKING, Callable, cast
 
-import jax
 from chex import Array
+from jax import jit
 
 if TYPE_CHECKING:
     import pyhf
@@ -24,7 +24,7 @@ def global_fit_objective(data: Array, model: pyhf.Model) -> Callable[[Array], fl
     return fit_objective
 
 
-@partial(jax.jit, static_argnames=["model"])
+@partial(jit, static_argnames=["model"])
 def fit(
     data: Array,
     model: pyhf.Model,

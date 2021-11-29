@@ -10,10 +10,11 @@ import jax
 import jaxopt
 import optax
 from chex import Array
+from jax import jit
 
 
 # try wrapping obj with closure_convert
-@partial(jax.jit, static_argnames=["objective_fn"])  # forward pass
+@partial(jit, static_argnames=["objective_fn"])  # forward pass
 def _minimize(
     objective_fn: Callable[..., float], init_pars: Array, lr: float, *obj_args: Any
 ) -> Array:
