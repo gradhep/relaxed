@@ -25,7 +25,7 @@ def gaussian_logpdf(
     )
 
 
-@partial(jit, static_argnames=["model", "rng_key", "n_samples"])
+@partial(jit, static_argnames=["model", "n_samples"])
 def gaussianity(
     model: pyhf.Model,
     bestfit_pars: Array,
