@@ -166,7 +166,6 @@ def test_fisher_uncert_grad(example_model):
 
 
 def test_gaussianity():
-    """Test that the gaussianity of the distribution is preserved."""
     pyhf.set_backend("jax")
     m = pyhf.simplemodels.uncorrelated_background([5, 5], [50, 50], [5, 5])
     pars = jnp.asarray(m.config.suggested_init())
