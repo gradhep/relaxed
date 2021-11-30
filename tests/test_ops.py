@@ -98,9 +98,6 @@ def test_hist_grad_validity(bins):
 
 
 def test_fisher_info(example_model):
-    def model(pars, data):
-        return example_model.logpdf(pars, data)[0]
-
     pars = example_model.config.suggested_init()
     data = example_model.expected_data(pars)
 
@@ -108,7 +105,7 @@ def test_fisher_info(example_model):
     # probably needs a more thorough analytic test
     res = np.array([[0.90909091, 9.09090909], [9.09090909, 290.90909091]])
 
-    assert np.allclose(relaxed.fisher_info(model, pars, data), res)
+    assert np.allclose(relaxed.fisher_info(example_model, pars, data), res)
 
 
 def test_fisher_uncerts_validity():
@@ -133,34 +130,24 @@ def test_fisher_uncerts_validity():
     mle_pars, mle_uncerts = fit_res[:, 0], fit_res[:, 1]
 
     # uncertainties from autodiff hessian
-    def lpdf(p, d):
-        return m.logpdf(p, d)[0]
-
-    relaxed_uncerts = relaxed.cramer_rao_uncert(lpdf, mle_pars, data)
+    relaxed_uncerts = relaxed.cramer_rao_uncert(m, mle_pars, data)
     assert np.allclose(mle_uncerts, relaxed_uncerts, rtol=5e-2)
 
 
 def test_fisher_info_grad(example_model):
     def pipeline(x):
         pars = example_model.config.suggested_init()
-
-        def model(pars, data):
-            return example_model.logpdf(pars, data)[0]
-
         data = example_model.expected_data(pars)
-        return relaxed.fisher_info(model, pars * x, data * x)
+        return relaxed.fisher_info(example_model, pars * x, data * x)
 
     jacrev(pipeline)(4.0)  # just check you can calc it w/o exception
 
 
 def test_fisher_uncert_grad(example_model):
     def pipeline(x):
-        def model(pars, data):
-            return example_model.logpdf(pars, data)[0]
-
         pars = example_model.config.suggested_init()
         data = example_model.expected_data(pars)
-        return relaxed.cramer_rao_uncert(model, pars * x, data * x)
+        return relaxed.cramer_rao_uncert(example_model, pars * x, data * x)
 
     jacrev(pipeline)(4.0)  # just check you can calc it w/o exception
 
@@ -170,22 +157,13 @@ def test_gaussianity():
     m = pyhf.simplemodels.uncorrelated_background([5, 5], [50, 50], [5, 5])
     pars = jnp.asarray(m.config.suggested_init())
     data = jnp.asarray(m.expected_data(pars))
-    cov_approx = jnp.linalg.inv(
-        relaxed.fisher_info(lambda d, p: m.logpdf(d, p)[0], pars, data)
-    )
-    relaxed.gaussianity(m, pars, cov_approx, data, PRNGKey(0))
+    relaxed.gaussianity(m, pars, data, PRNGKey(0))
 
 
 def test_gaussianity_grad(example_model):
     def pipeline(x):
-        def model(pars, data):
-            return example_model.logpdf(pars, data)[0]
-
         pars = example_model.config.suggested_init()
         data = example_model.expected_data(pars)
-        cov_approx = jnp.linalg.inv(relaxed.fisher_info(model, pars, data))
-        return relaxed.gaussianity(
-            example_model, pars * x, cov_approx * x, data * x, PRNGKey(0)
-        )
+        return relaxed.gaussianity(example_model, pars * x, data * x, PRNGKey(0))
 
     jacrev(pipeline)(4.0)  # just check you can calc it w/o exception
