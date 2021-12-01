@@ -36,6 +36,9 @@ Currently implemented:
   - [`relaxed.mle.fit`](src/relaxed/mle/global_fit.py): global MLE fit
   - [`relaxed.mle.fixed_poi_fit`](src/relaxed/infer/hypothesis_test.py): constrained fit given a value of a parameter of interest
 - [`relaxed.infer.hypotest`](src/relaxed/infer/hypothesis_test.py): hypothesis test using the profile likelihood as a test statistic
+- [`relaxed.fisher_info`](src/relaxed/ops/fisher_information.py): the fisher information matrix (of a `pyhf`-type model)
+- [`relaxed.cramer_rao_uncert`](src/relaxed/ops/fisher_information.py): inverts the fisher information matrix to provide uncertainties valid through the [Cramér-Rao bound](https://en.wikipedia.org/wiki/Cram%C3%A9r%E2%80%93Rao_bound)
+- [`relaxed.gaussianity`](src/relaxed/ops/likelihood_gaussianity.py): an experimental metric that quantifies the mean-squared difference of a likelihood function with respect to its gaussian approximation (covariance calculated using the Cramér-Rao bound above)
 
 ## install
 ```
