@@ -26,3 +26,25 @@
 [rtd-badge]:                https://readthedocs.org/projects/relaxed/badge/?version=latest
 [rtd-link]:                 https://relaxed.readthedocs.io/en/latest/?badge=latest
 [sk-badge]:                 https://scikit-hep.org/assets/images/Scikit--HEP-Project-blue.svg
+
+
+Provides differentiable ("relaxed") versions of common operations in high-energy physics. Where possible, function APIs try to mimic their commonly used counterparts, e.g. fitting and hypothesis testing in [`pyhf`](github.com/scikit-hep/pyhf).
+
+Currently implemented:
+- [`relaxed.hist`](src/relaxed/ops/histograms.py): histograms via kernel density estimation
+- fitting routines:
+  - [`relaxed.mle.fit`](src/relaxed/mle/global_fit.py): global MLE fit
+  - [`relaxed.mle.fixed_poi_fit`](src/relaxed/infer/hypothesis_test.py): constrained fit given a value of a parameter of interest
+- [`relaxed.infer.hypotest`](src/relaxed/infer/hypothesis_test.py): hypothesis test using the profile likelihood as a test statistic
+
+## install
+```
+pip install relaxed
+```
+
+For use with `pyhf`, e.g. in a [`neos`](github.com/gradhep/neos)-type workflow, it is temporarily recommended to install `pyhf` using a specific branch that is designed to be differentiable wrt model construction:
+
+```
+pip install git+http://github.com/scikit-hep/pyhf.git@make_difffable_model_ctor
+```
+We plan to merge this into `pyhf` when it's stable, and will then drop this instruction :)
