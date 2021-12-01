@@ -42,7 +42,7 @@ Currently implemented:
 pip install relaxed
 ```
 
-For use with `pyhf`, e.g. in a [`neos`](github.com/gradhep/neos)-type workflow, it is temporarily recommended to install `pyhf` using a specific branch that is designed to be differentiable wrt model construction:
+For use with `pyhf`, e.g. in a [`neos`](github.com/gradhep/neos)-type workflow, it is temporarily recommended to install `pyhf` using a specific branch that is designed to be differentiable with respect to model construction:
 
 ```
 pip install git+http://github.com/scikit-hep/pyhf.git@make_difffable_model_ctor
