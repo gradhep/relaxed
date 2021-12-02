@@ -28,7 +28,7 @@
 [sk-badge]:                 https://scikit-hep.org/assets/images/Scikit--HEP-Project-blue.svg
 
 
-Provides differentiable ("relaxed") versions of common operations in high-energy physics. Where possible, function APIs try to mimic their commonly used counterparts, e.g. fitting and hypothesis testing in [`pyhf`](github.com/scikit-hep/pyhf).
+Provides differentiable ("relaxed") versions of common operations in high-energy physics. Based on [`jax`](github.com/google/jax). Where possible, function APIs try to mimic their commonly used counterparts, e.g. fitting and hypothesis testing in [`pyhf`](github.com/scikit-hep/pyhf).
 
 Currently implemented:
 - [`relaxed.hist`](src/relaxed/ops/histograms.py): histograms via kernel density estimation
