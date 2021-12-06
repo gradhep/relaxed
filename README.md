@@ -43,7 +43,7 @@ Currently implemented:
 Will implement:
 - smooth cuts via sigmoid
 - your favourite idea here!
-  - we're maintaining a list of desired differentiable operations in [`list_of_operations.md`](list_of_operations.md) (thanks to [@cranmer](github.com/cranmer) -- feel free to take inspiration or contribute :)
+  - we're maintaining a list of desired differentiable operations in [`list_of_operations.md`](list_of_operations.md) (thanks to [@cranmer](github.com/cranmer)) -- feel free to take inspiration or contribute :)
 
 ## install
 ```
