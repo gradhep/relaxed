@@ -40,6 +40,11 @@ Currently implemented:
 - [`relaxed.cramer_rao_uncert`](src/relaxed/ops/fisher_information.py): inverts the fisher information matrix to provide uncertainties valid through the [Cramér-Rao bound](https://en.wikipedia.org/wiki/Cram%C3%A9r%E2%80%93Rao_bound)
 - [`relaxed.gaussianity`](src/relaxed/ops/likelihood_gaussianity.py): an experimental metric that quantifies the mean-squared difference of a likelihood function with respect to its gaussian approximation (covariance calculated using the Cramér-Rao bound above)
 
+Will implement:
+- smooth cuts via sigmoid
+- your favourite idea here!
+  - we're maintaining a list of desired differentiable operations in [`list_of_operations.md`](list_of_operations.md) (thanks to [@cranmer](github.com/cranmer) -- feel free to take inspiration or contribute :)
+
 ## install
 ```
 pip install relaxed
