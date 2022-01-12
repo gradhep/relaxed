@@ -28,7 +28,7 @@
 [sk-badge]:                 https://scikit-hep.org/assets/images/Scikit--HEP-Project-blue.svg
 
 
-Provides differentiable ("relaxed") versions of common operations in high-energy physics. Based on [`jax`](github.com/google/jax). Where possible, function APIs try to mimic their commonly used counterparts, e.g. fitting and hypothesis testing in [`pyhf`](github.com/scikit-hep/pyhf).
+Provides differentiable ("relaxed") versions of common operations in high-energy physics. Based on [`jax`](http://github.com/google/jax). Where possible, function APIs try to mimic their commonly used counterparts, e.g. fitting and hypothesis testing in [`pyhf`](http://github.com/scikit-hep/pyhf).
 
 Currently implemented:
 - [`relaxed.hist`](src/relaxed/ops/histograms.py): histograms via kernel density estimation
@@ -43,14 +43,14 @@ Currently implemented:
 Will implement:
 - smooth cuts via sigmoid
 - your favourite idea here!
-  - we're maintaining a list of desired differentiable operations in [`list_of_operations.md`](list_of_operations.md) (thanks to [@cranmer](github.com/cranmer)) -- feel free to take inspiration or contribute :)
+  - we're maintaining a list of desired differentiable operations in [`list_of_operations.md`](list_of_operations.md) (thanks to [@cranmer](http://github.com/cranmer)) -- feel free to take inspiration or contribute :)
 
 ## install
 ```
 pip install relaxed
 ```
 
-For use with `pyhf`, e.g. in a [`neos`](github.com/gradhep/neos)-type workflow, it is temporarily recommended to install `pyhf` using a specific branch that is designed to be differentiable with respect to model construction:
+For use with `pyhf`, e.g. in a [`neos`](http://github.com/gradhep/neos)-type workflow, it is temporarily recommended to install `pyhf` using a specific branch that is designed to be differentiable with respect to model construction:
 
 ```
 pip install git+http://github.com/scikit-hep/pyhf.git@make_difffable_model_ctor
