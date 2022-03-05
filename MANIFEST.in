@@ -2,5 +2,5 @@ prune *
 graft src
 graft tests
 
-include LICENSE README.md pyproject.toml setup.py setup.cfg CONTRIBUTING.md list_of_operations.md
+include LICENSE README.md pyproject.toml setup.py setup.cfg CONTRIBUTING.md list_of_operations.md CITATION.cff
 global-exclude __pycache__ *.py[cod] .*
