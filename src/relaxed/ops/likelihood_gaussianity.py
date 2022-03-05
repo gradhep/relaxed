@@ -66,4 +66,4 @@ def gaussianity(
     )(gaussian_parspace_samples, bestfit_pars)
 
     diffs = relative_nlls_model - relative_nlls_gaussian
-    return jnp.nanmean(diffs ** 2, axis=0)
+    return jnp.nanmean(diffs**2, axis=0)
