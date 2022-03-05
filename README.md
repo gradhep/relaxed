@@ -2,10 +2,10 @@
 
 [![Actions Status][actions-badge]][actions-link]
 [![codecov](https://codecov.io/gh/gradhep/relaxed/branch/main/graph/badge.svg?token=CJLGC7H7NY)](https://codecov.io/gh/gradhep/relaxed)
-[![Code style: black][black-badge]][black-link]
 [![PyPI version][pypi-version]][pypi-link]
 [![PyPI platforms][pypi-platforms]][pypi-link]
-[![Documentation Status][rtd-badge]][rtd-link]
+[![DOI](https://zenodo.org/badge/264991846.svg)](https://zenodo.org/badge/latestdoi/264991846)
+
 
 
 
