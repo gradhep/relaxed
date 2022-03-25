@@ -91,9 +91,9 @@ def qmu_test(
     return (CLs, mle_pars) if return_mle_pars else CLs
 
 
-# @partial(
-#     jit, static_argnames=["model", "return_mle_pars"]
-# )  # can remove model eventually
+@partial(
+    jit, static_argnames=["model", "return_mle_pars"]
+)  # can remove model eventually
 def q0_test(
     test_poi: float,
     data: Array,

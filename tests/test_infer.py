@@ -29,8 +29,7 @@ def test_hypotest_validity(phi, test_stat):
     assert np.allclose(
         relaxed_cls,
         pyhf_cls,
-        rtol=0.01,
-        atol=0.01,  # high rtol for a very loose test...
+        atol=0.001,
     )  # tested working without dummy_pyhf on a pyhf fork, but not main yet
 
 
