@@ -47,3 +47,15 @@ def test_hypotest_grad(test_stat):
         return expected_cls
 
     jacrev(pipeline)(jnp.asarray(0.5))
+
+
+def test_wrong_test_stat():
+    with pytest.raises(ValueError):
+        model = example_model(0.0)
+        relaxed.infer.hypotest(
+            1,
+            model.expected_data(jnp.array([0.0, 1.0])),
+            model,
+            lr=1e-2,
+            test_stat="q1",
+        )
