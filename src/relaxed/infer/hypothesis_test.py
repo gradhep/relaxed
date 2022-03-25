@@ -20,7 +20,7 @@ def hypotest(
     model: pyhf.Model,
     lr: float,
     return_mle_pars: bool = False,
-    test_stat: str = "qmu",
+    test_stat: str = "q",
 ) -> tuple[Array, Array] | Array:
     """Calculate expected CLs/p-values via hypothesis tests.
 
@@ -48,7 +48,7 @@ def hypotest(
     Array
         The MLE parameters, if `return_mle_pars` is True.
     """
-    if test_stat == "qmu":
+    if test_stat == "q":
         return qmu_test(test_poi, data, model, lr, return_mle_pars)
     elif test_stat == "q0":
         logging.info(
@@ -91,9 +91,9 @@ def qmu_test(
     return (CLs, mle_pars) if return_mle_pars else CLs
 
 
-@partial(
-    jit, static_argnames=["model", "return_mle_pars"]
-)  # can remove model eventually
+# @partial(
+#     jit, static_argnames=["model", "return_mle_pars"]
+# )  # can remove model eventually
 def q0_test(
     test_poi: float,
     data: Array,

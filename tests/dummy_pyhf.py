@@ -45,3 +45,23 @@ class Model:
 def uncorrelated_background(signal_data, bkg_data, bkg_uncerts):
     """Dummy class to mimic the functionality of `pyhf.simplemodels.hepdata_like`."""
     return Model([signal_data, bkg_data, bkg_uncerts])
+
+
+def calc_yields(x):
+    s = 15 + x
+    b = 45 - 2 * x
+    db = 1 + 0.2 * x**2
+    return [s], [b], [db]
+
+
+def example_model(phi, return_yields=False):
+    s, b, db = yields = calc_yields(phi)
+
+    model = uncorrelated_background(
+        jnp.asarray([s]), jnp.asarray([b]), jnp.asarray([db])
+    )
+
+    if return_yields:
+        return model, yields
+    else:
+        return model

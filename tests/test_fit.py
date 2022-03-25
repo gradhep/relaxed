@@ -1,20 +1,22 @@
 import jax.numpy as jnp
 import numpy as np
 import pyhf
-from dummy_pyhf import uncorrelated_background
+import pytest
+from dummy_pyhf import example_model, uncorrelated_background
 from jax import jacrev
 
 import relaxed
 
 
-def test_fit(example_model):
+@pytest.mark.parametrize("phi", np.linspace(0.0, 10.0, 5))
+def test_fit(phi):
     analytic_pars = jnp.array([0.0, 1.0])
-
+    model = example_model(phi)
     mle_pars = relaxed.mle.fit(
-        model=example_model,
-        data=example_model.expected_data(analytic_pars),
-        init_pars=example_model.config.suggested_init(),
-        lr=1e-2,
+        model=model,
+        data=model.expected_data(analytic_pars),
+        init_pars=model.config.suggested_init(),
+        lr=1e-3,
     )
     assert np.allclose(mle_pars, analytic_pars, atol=0.01)
 
