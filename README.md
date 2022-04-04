@@ -32,7 +32,7 @@
 [sk-badge]:                 https://scikit-hep.org/assets/images/Scikit--HEP-Project-blue.svg
 
 
-Provides differentiable ("relaxed") versions of common operations in high-energy physics. 
+Provides differentiable ("relaxed") versions of common operations in high-energy physics.
 
 Based on [`jax`](http://github.com/google/jax). Where possible, function APIs try to mimic their commonly used counterparts, e.g. fitting and hypothesis testing in [`pyhf`](http://github.com/scikit-hep/pyhf).
 
