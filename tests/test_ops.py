@@ -13,7 +13,7 @@ import relaxed
 
 @pytest.fixture
 def big_sample():
-    return normal(PRNGKey(0), shape=(5000,))
+    return normal(PRNGKey(1), shape=(5000,))
 
 
 @pytest.fixture
@@ -152,13 +152,29 @@ def test_fisher_uncert_grad():
     jacrev(pipeline)(4.0)  # just check you can calc it w/o exception
 
 
-@pytest.mark.parametrize("keep", [True, False])
+@pytest.mark.parametrize("keep", ["above", "below"])
 def test_cut_validity(big_sample, keep):
-    """See if soft cuts well-approximate hard cuts."""
-    weights = relaxed.cut(big_sample, 0, keep)
+    """Recover hard cut in large slope case."""
+    weights = relaxed.cut(big_sample, 0, slope=100000, keep=keep)
     if keep == "above":
         np_cut = np.array(big_sample > 0, dtype=float)
     elif keep == "below":
         np_cut = np.array(big_sample < 0, dtype=float)
 
-    assert np.allclose(big_sample[weights > 0.5], big_sample[np_cut])
+    assert np.allclose(weights, np_cut)
+
+
+@pytest.mark.parametrize("keep", ["above", "below"])
+def test_cut_grad(keep):
+    def pipeline(x):
+        model = example_model(5.0)
+        pars = model.config.suggested_init()
+        data = model.expected_data(pars)
+        return relaxed.cut(data, x, keep=keep)
+
+    jacrev(pipeline)(4.0)  # just check you can calc it w/o exception
+
+
+def test_invalid_cut_keep():
+    with pytest.raises(ValueError):
+        relaxed.cut(jnp.array([1, 2, 3]), 0, keep="frogs")
