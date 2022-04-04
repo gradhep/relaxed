@@ -63,15 +63,23 @@ def test_hypotest_expected(test_stat):
 
 
 @pytest.mark.parametrize("test_stat", ["q", "q0"])
-def test_hypotest_grad(test_stat):
+@pytest.mark.parametrize("expected_pars", [True, False])
+def test_hypotest_grad(test_stat, expected_pars):
+    pars = jnp.array([0.0, 1.0])
+    if expected_pars:
+        expars = pars
+    else:
+        expars = None
+
     def pipeline(x):
         model = uncorrelated_background(x * 5.0, x * 20, x * 2)
         expected_cls = relaxed.infer.hypotest(
             1.0,
             model=model,
-            data=model.expected_data(jnp.array([0.0, 1.0])),
+            data=model.expected_data(pars),
             lr=1e-2,
             test_stat=test_stat,
+            expected_pars=expars,
         )
         return expected_cls
 
