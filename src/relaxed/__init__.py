@@ -7,8 +7,9 @@ __all__ = (
     "fisher_info",
     "mle",
     "infer",
-    "gaussianity",
+    "metrics",
+    "cut",
 )
 
-from relaxed import infer, mle
-from relaxed.ops import cramer_rao_uncert, fisher_info, gaussianity, hist
+from relaxed import infer, metrics, mle
+from relaxed.ops import cramer_rao_uncert, cut, fisher_info, hist
