@@ -1,13 +1,17 @@
-# relaxed
-
-[![Actions Status][actions-badge]][actions-link]
-[![codecov](https://codecov.io/gh/gradhep/relaxed/branch/main/graph/badge.svg?token=CJLGC7H7NY)](https://codecov.io/gh/gradhep/relaxed)
-[![PyPI version][pypi-version]][pypi-link]
-[![PyPI platforms][pypi-platforms]][pypi-link]
-[![DOI](https://zenodo.org/badge/264991846.svg)](https://zenodo.org/badge/latestdoi/264991846)
-
-
-
+<p align="center">
+  :sleeping:<br>
+  <strong>relaxed</strong><br>
+  <br>
+  <a href="https://github.com/gradhep/relaxed/actions">
+    <img alt="GitHub Workflow Status" src="https://github.com/gradhep/relaxed/workflows/CI/badge.svg">
+  </a>
+  <a href="https://codecov.io/gh/gradhep/relaxed">
+    <img alt="Read the Docs" src="https://codecov.io/gh/gradhep/relaxed/branch/main/graph/badge.svg?token=CJLGC7H7NY">
+  </a>
+  <a href="https://zenodo.org/badge/latestdoi/264991846">
+    <img alt="Zenodo DOI" src="https://zenodo.org/badge/264991846.svg">
+  </a>
+</p>
 
 
 [actions-badge]:            https://github.com/gradhep/relaxed/workflows/CI/badge.svg
@@ -28,20 +32,24 @@
 [sk-badge]:                 https://scikit-hep.org/assets/images/Scikit--HEP-Project-blue.svg
 
 
-Provides differentiable ("relaxed") versions of common operations in high-energy physics. Based on [`jax`](http://github.com/google/jax). Where possible, function APIs try to mimic their commonly used counterparts, e.g. fitting and hypothesis testing in [`pyhf`](http://github.com/scikit-hep/pyhf).
+Provides differentiable ("relaxed") versions of common operations in high-energy physics. 
 
-Currently implemented:
-- [`relaxed.hist`](src/relaxed/ops/histograms.py): histograms via kernel density estimation (tunable bandwidth)
-- [`relaxed.cut`](src/relaxed/ops/cuts.py): approximates a hard cut with a sigmoid function (tunable slope)
-- fitting routines:
+Based on [`jax`](http://github.com/google/jax). Where possible, function APIs try to mimic their commonly used counterparts, e.g. fitting and hypothesis testing in [`pyhf`](http://github.com/scikit-hep/pyhf).
+
+## currently implemented:
+- **basic operations**:
+  - [`relaxed.hist`](src/relaxed/ops/histograms.py): histograms via kernel density estimation (tunable bandwidth)
+  - [`relaxed.cut`](src/relaxed/ops/cuts.py): approximates a hard cut with a sigmoid function (tunable slope)
+- **fitting routines**:
   - [`relaxed.mle.fit`](src/relaxed/mle/global_fit.py): global MLE fit
   - [`relaxed.mle.fixed_poi_fit`](src/relaxed/infer/hypothesis_test.py): constrained fit given a value of a parameter of interest
-- [`relaxed.infer.hypotest`](src/relaxed/infer/hypothesis_test.py): hypothesis test using the profile likelihood as a test statistic
-- [`relaxed.fisher_info`](src/relaxed/ops/fisher_information.py): the fisher information matrix (of a `pyhf`-type model)
-- [`relaxed.cramer_rao_uncert`](src/relaxed/ops/fisher_information.py): inverts the fisher information matrix to provide uncertainties valid through the [Cramér-Rao bound](https://en.wikipedia.org/wiki/Cram%C3%A9r%E2%80%93Rao_bound)
-- metrics:
-  - [`relaxed.metrics.gaussianity`](src/relaxed/ops/likelihood_gaussianity.py): an experimental metric that quantifies the mean-squared difference of a likelihood function with respect to its gaussian approximation (covariance calculated using the Cramér-Rao bound above)
-  - [`relaxed.metrics.asimov_sig`]: easy access to the (single- and multi-bin) stat-only expected significance.
+- **inference**:
+  - [`relaxed.infer.hypotest`](src/relaxed/infer/hypothesis_test.py): hypothesis test using the profile likelihood as a test statistic
+  - [`relaxed.fisher_info`](src/relaxed/ops/fisher_information.py): the fisher information matrix (of a `pyhf`-type model)
+  - [`relaxed.cramer_rao_uncert`](src/relaxed/ops/fisher_information.py): inverts the fisher information matrix to provide uncertainties valid through the [Cramér-Rao bound](https://en.wikipedia.org/wiki/Cram%C3%A9r%E2%80%93Rao_bound)
+- **metrics**:
+  - [`relaxed.metrics.gaussianity`](src/relaxed/metrics/likelihood_gaussianity.py): an experimental metric that quantifies the mean-squared difference of a likelihood function with respect to its gaussian approximation (covariance calculated using the Cramér-Rao bound above)
+  - [`relaxed.metrics.asimov_sig`](src/relaxed/metrics/significance.py): easy access to the (single- and multi-bin) stat-only expected significance.
 
 We're maintaining a list of desired differentiable operations in [`list_of_operations.md`](list_of_operations.md) (thanks to [@cranmer](http://github.com/cranmer)) -- feel free to take inspiration or contribute with a PR if there's one you can handle :)
 
@@ -56,3 +64,10 @@ For use with `pyhf`, e.g. in a [`neos`](http://github.com/gradhep/neos)-type wor
 python3 -m pip install git+http://github.com/scikit-hep/pyhf.git@make_difffable_model_ctor
 ```
 We plan to merge this into `pyhf` when it's stable, and will then drop this instruction :)
+
+## cite
+If you use `relaxed`, please cite us! You should be able to do that from the github UI (top-right, under 'cite this repository'), but if not, see our [Zenodo DOI](https://zenodo.org/badge/latestdoi/264991846) or our [`CITATION.cff`](CITATION.cff).
+
+## acknowledgments
+Big thanks to all the developers of the main packages we use (`jax`, `pyhf`, `jaxopt`).
+Thanks also to [@dfm](github.com/user/dfm) for the README header inspiration ;)
