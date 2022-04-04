@@ -152,6 +152,7 @@ def test_fisher_uncert_grad():
     jacrev(pipeline)(4.0)  # just check you can calc it w/o exception
 
 
+@pytest.mark.parametrize("keep", [True, False])
 def test_cut_validity(big_sample, keep):
     """See if soft cuts well-approximate hard cuts."""
     weights = relaxed.cut(big_sample, 0, keep)

@@ -20,6 +20,6 @@ def test_gaussianity_grad():
         model = example_model(5.0)
         pars = model.config.suggested_init()
         data = model.expected_data(pars)
-        return relaxed.gaussianity(model, pars * x, data * x, PRNGKey(0))
+        return relaxed.metrics.gaussianity(model, pars * x, data * x, PRNGKey(0))
 
     jacrev(pipeline)(4.0)  # just check you can calc it w/o exception
