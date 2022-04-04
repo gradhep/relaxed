@@ -31,28 +31,28 @@
 Provides differentiable ("relaxed") versions of common operations in high-energy physics. Based on [`jax`](http://github.com/google/jax). Where possible, function APIs try to mimic their commonly used counterparts, e.g. fitting and hypothesis testing in [`pyhf`](http://github.com/scikit-hep/pyhf).
 
 Currently implemented:
-- [`relaxed.hist`](src/relaxed/ops/histograms.py): histograms via kernel density estimation
+- [`relaxed.hist`](src/relaxed/ops/histograms.py): histograms via kernel density estimation (tunable bandwidth)
+- [`relaxed.cut`](src/relaxed/ops/cuts.py): approximates a hard cut with a sigmoid function (tunable slope)
 - fitting routines:
   - [`relaxed.mle.fit`](src/relaxed/mle/global_fit.py): global MLE fit
   - [`relaxed.mle.fixed_poi_fit`](src/relaxed/infer/hypothesis_test.py): constrained fit given a value of a parameter of interest
 - [`relaxed.infer.hypotest`](src/relaxed/infer/hypothesis_test.py): hypothesis test using the profile likelihood as a test statistic
 - [`relaxed.fisher_info`](src/relaxed/ops/fisher_information.py): the fisher information matrix (of a `pyhf`-type model)
 - [`relaxed.cramer_rao_uncert`](src/relaxed/ops/fisher_information.py): inverts the fisher information matrix to provide uncertainties valid through the [Cramér-Rao bound](https://en.wikipedia.org/wiki/Cram%C3%A9r%E2%80%93Rao_bound)
-- [`relaxed.gaussianity`](src/relaxed/ops/likelihood_gaussianity.py): an experimental metric that quantifies the mean-squared difference of a likelihood function with respect to its gaussian approximation (covariance calculated using the Cramér-Rao bound above)
+- metrics:
+  - [`relaxed.metrics.gaussianity`](src/relaxed/ops/likelihood_gaussianity.py): an experimental metric that quantifies the mean-squared difference of a likelihood function with respect to its gaussian approximation (covariance calculated using the Cramér-Rao bound above)
+  - [`relaxed.metrics.asimov_sig`]: easy access to the (single- and multi-bin) stat-only expected significance.
 
-Will implement:
-- smooth cuts via sigmoid
-- your favourite idea here!
-  - we're maintaining a list of desired differentiable operations in [`list_of_operations.md`](list_of_operations.md) (thanks to [@cranmer](http://github.com/cranmer)) -- feel free to take inspiration or contribute :)
+We're maintaining a list of desired differentiable operations in [`list_of_operations.md`](list_of_operations.md) (thanks to [@cranmer](http://github.com/cranmer)) -- feel free to take inspiration or contribute with a PR if there's one you can handle :)
 
 ## install
 ```
-pip install relaxed
+python3 -m pip install relaxed
 ```
 
 For use with `pyhf`, e.g. in a [`neos`](http://github.com/gradhep/neos)-type workflow, it is temporarily recommended to install `pyhf` using a specific branch that is designed to be differentiable with respect to model construction:
 
 ```
-pip install git+http://github.com/scikit-hep/pyhf.git@make_difffable_model_ctor
+python3 -m pip install git+http://github.com/scikit-hep/pyhf.git@make_difffable_model_ctor
 ```
 We plan to merge this into `pyhf` when it's stable, and will then drop this instruction :)
