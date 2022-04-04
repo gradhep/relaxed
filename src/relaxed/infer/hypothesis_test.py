@@ -21,6 +21,7 @@ def hypotest(
     lr: float,
     return_mle_pars: bool = False,
     test_stat: str = "q",
+    expected_pars: Array | None = None,
 ) -> tuple[Array, Array] | Array:
     """Calculate expected CLs/p-values via hypothesis tests.
 
@@ -40,6 +41,9 @@ def hypotest(
         The test statistic to use for the hypothesis test. One of:
         - "qmu" (default, used for upper limits)
         - "q0" (used for discovery of a positive signal)
+    expected_pars : Array, optional
+        Use if calculating expected significance and these are known. If not
+        provided, the MLE parameters will be fitted.
 
     Returns
     -------
@@ -49,12 +53,12 @@ def hypotest(
         The MLE parameters, if `return_mle_pars` is True.
     """
     if test_stat == "q":
-        return qmu_test(test_poi, data, model, lr, return_mle_pars)
+        return qmu_test(test_poi, data, model, lr, return_mle_pars, expected_pars)
     elif test_stat == "q0":
         logging.info(
             "test_poi automatically set to 0 for q0 test (bkg-only null hypothesis)"
         )
-        return q0_test(0.0, data, model, lr, return_mle_pars)
+        return q0_test(0.0, data, model, lr, return_mle_pars, expected_pars)
     else:
         raise ValueError(f"Unknown test statistic: {test_stat}")
 
@@ -68,6 +72,7 @@ def qmu_test(
     model: pyhf.Model,
     lr: float,
     return_mle_pars: bool = False,
+    expected_pars: Array | None = None,
 ) -> tuple[Array, Array] | Array:
     # hard-code 1 as inits for now
     # TODO: need to parse different inits for constrained and global fits
@@ -76,7 +81,10 @@ def qmu_test(
     conditional_pars = fixed_poi_fit(
         data, model, poi_condition=test_poi, init_pars=init_pars[:-1], lr=lr
     )
-    mle_pars = fit(data, model, init_pars=init_pars, lr=lr)
+    if expected_pars is None:
+        mle_pars = fit(data, model, init_pars=init_pars, lr=lr)
+    else:
+        mle_pars = expected_pars
     profile_likelihood = -2 * (
         model.logpdf(conditional_pars, data)[0] - model.logpdf(mle_pars, data)[0]
     )
@@ -100,6 +108,7 @@ def q0_test(
     model: pyhf.Model,
     lr: float,
     return_mle_pars: bool = False,
+    expected_pars: Array | None = None,
 ) -> tuple[Array, Array] | Array:
     # hard-code 1 as inits for now
     # TODO: need to parse different inits for constrained and global fits
@@ -108,7 +117,10 @@ def q0_test(
     conditional_pars = fixed_poi_fit(
         data, model, poi_condition=test_poi, init_pars=init_pars[:-1], lr=lr
     )
-    mle_pars = fit(data, model, init_pars=init_pars, lr=lr)
+    if expected_pars is None:
+        mle_pars = fit(data, model, init_pars=init_pars, lr=lr)
+    else:
+        mle_pars = expected_pars
     profile_likelihood = -2 * (
         model.logpdf(conditional_pars, data)[0] - model.logpdf(mle_pars, data)[0]
     )

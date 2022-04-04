@@ -34,6 +34,35 @@ def test_hypotest_validity(phi, test_stat):
 
 
 @pytest.mark.parametrize("test_stat", ["q", "q0"])
+def test_hypotest_expected(test_stat):
+    pyhf.set_backend("jax")
+    if test_stat == "q":
+        analytic_pars = jnp.array([0.0, 1.0])  # bkg-only hypothesis
+    elif test_stat == "q0":
+        analytic_pars = jnp.array([1.0, 1.0])  # nominal sig+bkg hypothesis
+    else:
+        raise ValueError(f"Unknown test statistic: {test_stat}")
+    model, yields = example_model(5.0, return_yields=True)
+    relaxed_cls = relaxed.infer.hypotest(
+        1,
+        model.expected_data(analytic_pars),
+        model,
+        lr=1e-3,
+        test_stat=test_stat,
+        expected_pars=analytic_pars,
+    )
+    m = pyhf.simplemodels.uncorrelated_background(*yields)
+    pyhf_cls = pyhf.infer.hypotest(
+        1, m.expected_data(analytic_pars), m, test_stat=test_stat
+    )
+    assert np.allclose(
+        relaxed_cls,
+        pyhf_cls,
+        atol=0.001,
+    )  # tested working without dummy_pyhf on a pyhf fork, but not main yet
+
+
+@pytest.mark.parametrize("test_stat", ["q", "q0"])
 def test_hypotest_grad(test_stat):
     def pipeline(x):
         model = uncorrelated_background(x * 5.0, x * 20, x * 2)
