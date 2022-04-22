@@ -1,16 +1,29 @@
 
-relaxed 😴
+
+Overview 🌐
 =========================
 
-`relaxed` is a library designed to provide common operations in high-energy physics that are both *differentiable* and *hardware-accelerated*.
+``relaxed`` provides common operations in high-energy physics (HEP) that are both *differentiable* and *hardware-accelerated* on GPUs and TPUs, thanks to `jax <http://github.com/google/jax>`_.
 
-The key purpose of the library is to facilitate gradient-based optimisation, e.g. optimising a neural network event selection for the best discovery significance.
+The key use case of ``relaxed`` is facilitating gradient-based optimisation in HEP workflows, e.g. optimising an analysis configuration for the best discovery significance, which looks like this:
+
+.. image:: ./assets/simple-opt.gif
+    :alt: simple optimisation example
+    :align: center
+
+
 
 .. toctree::
    :maxdepth: 2
    :titlesonly:
    :caption: Contents
    :glob:
+
+   relaxed-101.md
+   api.rst
+   relaxed.*.rst
+   modules.rst
+
 
 
 

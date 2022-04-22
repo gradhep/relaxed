@@ -9,10 +9,12 @@
 
 from typing import List
 
-# -- Project information -----------------------------------------------------
+from sphinx.builders.html import StandaloneHTMLBuilder
 
-project = "relaxed"
-copyright = "2021, Nathan Simpson"
+# -- Project information -----------------------------------------------------
+# add sleeping emoji to the project name
+project = "relaxed 😴"
+copyright = "2021"
 author = "Nathan Simpson"
 
 
@@ -61,3 +63,10 @@ html_theme_options = {
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path: List[str] = []
+
+StandaloneHTMLBuilder.supported_image_types = [
+    "image/svg+xml",
+    "image/gif",
+    "image/png",
+    "image/jpeg",
+]

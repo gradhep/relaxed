@@ -13,6 +13,7 @@ from jax.random import PRNGKey, multivariate_normal
 from relaxed._types import Array
 from relaxed.ops import fisher_info
 
+
 if TYPE_CHECKING:
     import pyhf
 
