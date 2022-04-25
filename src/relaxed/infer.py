@@ -8,10 +8,10 @@ from functools import partial
 
 import jax.numpy as jnp
 import pyhf
-from chex import Array
 from jax import jit
 
-from ..mle import fit, fixed_poi_fit
+from relaxed._types import Array
+from relaxed.mle import fit, fixed_poi_fit
 
 
 def hypotest(

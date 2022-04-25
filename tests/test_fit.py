@@ -2,10 +2,10 @@ import jax.numpy as jnp
 import numpy as np
 import pyhf
 import pytest
-from dummy_pyhf import example_model, uncorrelated_background
 from jax import jacrev
 
 import relaxed
+from relaxed.dummy_pyhf import example_model, uncorrelated_background
 
 
 @pytest.mark.parametrize("phi", np.linspace(0.0, 10.0, 5))

@@ -1,20 +1,41 @@
 from __future__ import annotations
 
-__all__ = ("gaussianity",)
+__all__ = ("asimov_sig", "gaussianity")
 
 from functools import partial
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
+import jax
 import jax.numpy as jnp
 import jax.scipy as jsp
-from chex import Array
-from jax import jit, vmap
 from jax.random import PRNGKey, multivariate_normal
 
+from relaxed._types import Array
 from relaxed.ops import fisher_info
 
 if TYPE_CHECKING:
     import pyhf
+
+
+@jax.jit
+def asimov_sig(s: Array, b: Array) -> float:
+    """Median expected significance for a counting experiment, valid in the asymptotic regime.
+    Also valid for the multi-bin case.
+
+    Parameters
+    ----------
+    s : Array
+        Signal counts.
+    b : Array
+        Background counts.
+
+    Returns
+    -------
+    float
+        The expected significance.
+    """
+    q0 = 2 * jnp.sum((s + b) * (jnp.log(1 + s / b)) - s)
+    return cast(float, q0**0.5)
 
 
 def gaussian_logpdf(
@@ -27,7 +48,7 @@ def gaussian_logpdf(
     )
 
 
-@partial(jit, static_argnames=["model", "n_samples"])
+@partial(jax.jit, static_argnames=["model", "n_samples"])
 def gaussianity(
     model: pyhf.Model,
     bestfit_pars: Array,
@@ -50,14 +71,14 @@ def gaussianity(
         shape=(n_samples,),
     )
 
-    relative_nlls_model = vmap(
+    relative_nlls_model = jax.vmap(
         lambda pars, data: -(
             model.logpdf(pars, data)[0] - model.logpdf(bestfit_pars, data)[0]
         ),  # scale origin to bestfit pars
         in_axes=(0, None),
     )(gaussian_parspace_samples, data)
 
-    relative_nlls_gaussian = vmap(
+    relative_nlls_gaussian = jax.vmap(
         lambda pars, data: -(
             gaussian_logpdf(pars, data, cov_approx)[0]
             - gaussian_logpdf(bestfit_pars, data, cov_approx)[0]
