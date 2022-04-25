@@ -20,11 +20,7 @@ The key use case of ``relaxed`` is facilitating gradient-based optimisation in H
    :glob:
 
    relaxed-101.md
-   api.rst
-   relaxed.*.rst
    modules.rst
-
-
 
 
 Indices and tables

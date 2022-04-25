@@ -1,7 +1,10 @@
-relaxed
+API 💻
 =======
 
-.. toctree::
-   :maxdepth: 1
+Implementations of top-level methods in ``relaxed`` are currently located in the ``relaxed.ops`` submodule.
 
-   relaxed
+.. toctree::
+   :maxdepth: 4
+   :glob:
+
+   relaxed.*
