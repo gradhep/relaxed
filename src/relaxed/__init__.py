@@ -9,7 +9,8 @@ __all__ = (
     "infer",
     "metrics",
     "cut",
+    "dummy_pyhf",
 )
 
-from relaxed import infer, metrics, mle
+from relaxed import dummy_pyhf, infer, metrics, mle
 from relaxed.ops import cramer_rao_uncert, cut, fisher_info, hist

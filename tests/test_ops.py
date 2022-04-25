@@ -4,11 +4,11 @@ import jax.numpy as jnp
 import numpy as np
 import pyhf
 import pytest
-from dummy_pyhf import example_model
 from jax import jacrev, vmap
 from jax.random import PRNGKey, normal
 
 import relaxed
+from relaxed.dummy_pyhf import example_model
 
 
 @pytest.fixture
