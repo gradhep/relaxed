@@ -9,7 +9,8 @@ import jax
 import jax.numpy as jnp
 import jaxopt
 import optax
-from chex import Array
+
+from relaxed._types import Array
 
 if TYPE_CHECKING:
     import pyhf

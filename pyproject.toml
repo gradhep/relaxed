@@ -24,7 +24,7 @@ filterwarnings = [
     "ignore:No GPU/TPU found, falling back to CPU.:UserWarning",
     "ignore:the imp module is deprecated in favour of importlib.*:DeprecationWarning",
     "ignore:JAX on Mac ARM machines is experimental and minimally tested.*:UserWarning",
-    "ignore:jax.tree_util.tree_multimap() is deprecated. Please use jax.tree_util.tree_map() instead as a drop-in replacement.*:FutureWarning",
+    "ignore::FutureWarning",
 ]
 testpaths = [
     "tests",

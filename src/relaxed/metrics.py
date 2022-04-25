@@ -8,9 +8,9 @@ from typing import TYPE_CHECKING, cast
 import jax
 import jax.numpy as jnp
 import jax.scipy as jsp
-from chex import Array
 from jax.random import PRNGKey, multivariate_normal
 
+from relaxed._types import Array
 from relaxed.ops import fisher_info
 
 if TYPE_CHECKING:

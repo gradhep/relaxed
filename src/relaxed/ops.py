@@ -8,7 +8,8 @@ from typing import Any
 import jax
 import jax.numpy as jnp
 import jax.scipy as jsp
-from chex import Array
+
+from relaxed._types import Array
 
 
 @partial(jax.jit, static_argnames=["keep"])
