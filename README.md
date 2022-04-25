@@ -8,6 +8,9 @@
   <a href="https://codecov.io/gh/gradhep/relaxed">
     <img alt="Read the Docs" src="https://codecov.io/gh/gradhep/relaxed/branch/main/graph/badge.svg?token=CJLGC7H7NY">
   </a>
+  <a href="https://relaxed.readthedocs.io/en/latest/?badge=latest">
+    <img alt="Read the Docs" src="https://readthedocs.org/projects/relaxed/badge/?version=latest">
+  </a>
   <a href="https://zenodo.org/badge/latestdoi/264991846">
     <img alt="Zenodo DOI" src="https://zenodo.org/badge/264991846.svg">
   </a>
