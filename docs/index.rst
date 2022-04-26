@@ -7,7 +7,7 @@ Overview 🌐
 
 The key use case of ``relaxed`` is facilitating gradient-based optimisation in HEP workflows, e.g. optimising an analysis configuration for the best discovery significance, which looks like this:
 
-.. image:: ./assets/simple-opt.gif
+.. image:: ./assets/opt.gif
     :alt: simple optimisation example
     :align: center
 
