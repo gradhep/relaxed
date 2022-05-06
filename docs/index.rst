@@ -22,6 +22,7 @@ The key use case of ``relaxed`` is facilitating gradient-based optimisation in H
    relaxed-101.md
    examples.rst
    modules.rst
+   contributing.md
 
 
 

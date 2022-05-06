@@ -7,7 +7,13 @@
 # Warning: do not change the path here. To use autodoc, you need to install the
 # package first.
 
+import os
+import shutil
+from pathlib import Path
 from typing import List
+
+DIR = Path(__file__).parent.resolve()
+BASEDIR = DIR.parent
 
 from sphinx.builders.html import StandaloneHTMLBuilder
 
@@ -71,3 +77,36 @@ StandaloneHTMLBuilder.supported_image_types = [
     "image/png",
     "image/jpeg",
 ]
+
+
+def prepare(app):
+    outer_nb = BASEDIR / "examples"
+    inner_nb = DIR / "examples"
+    inner_nb.mkdir(exist_ok=True)
+
+    # ignore notebooks starting with _
+    for notebook in outer_nb.glob("*.ipynb"):
+        if not notebook.name.startswith("_"):
+            shutil.copy(notebook, inner_nb / notebook.name)
+    outer_cont = BASEDIR / ".github"
+    inner_cont = DIR
+    contributing = "CONTRIBUTING.md"
+    shutil.copy(outer_cont / contributing, inner_cont / "contributing.md")
+
+
+def clean_up(app, exception):
+    inner_nb = DIR / "examples"
+    for notebook in inner_nb.glob("*.ipynb"):
+        notebook.unlink()
+
+    inner_cont = DIR
+    os.unlink(inner_cont / "contributing.md")
+
+
+def setup(app):
+
+    # Copy the notebooks in
+    app.connect("builder-inited", prepare)
+
+    # Clean up the generated notebooks
+    app.connect("build-finished", clean_up)
