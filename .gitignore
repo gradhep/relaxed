@@ -145,3 +145,4 @@ src/*/_version.py
 
 # personal jupyter nb for tests
 t.ipynb
+examples/_*.ipynb
