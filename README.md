@@ -39,7 +39,7 @@ Provides differentiable ("relaxed") versions of common operations in high-energy
 
 Based on [`jax`](http://github.com/google/jax). Where possible, function APIs try to mimic their commonly used counterparts, e.g. fitting and hypothesis testing in [`pyhf`](http://github.com/scikit-hep/pyhf).
 
-## currently implemented:
+## Currently implemented:
 - **basic operations**:
   - [`relaxed.hist`](src/relaxed/ops/histograms.py): histograms via kernel density estimation (tunable bandwidth).
   - [`relaxed.cut`](src/relaxed/ops/cuts.py): approximates a hard cut with a sigmoid function (tunable slope).
@@ -56,21 +56,37 @@ Based on [`jax`](http://github.com/google/jax). Where possible, function APIs tr
 
 We're maintaining a list of desired differentiable operations in [`list_of_operations.md`](list_of_operations.md) (thanks to [@cranmer](http://github.com/cranmer)) -- feel free to take inspiration or contribute with a PR if there's one you can handle :)
 
-## install
+## Install
+In your virtual environment:
 ```
 python3 -m pip install relaxed
 ```
 
-For use with `pyhf`, e.g. in a [`neos`](http://github.com/gradhep/neos)-type workflow, it is temporarily recommended to install `pyhf` using a specific branch that is designed to be differentiable with respect to model construction:
+## Examples
+To run the example notebooks in `examples/`, clone the repository, then:
+
+```
+python3 -m venv venv  # or virtualenv
+source venv/bin/activate
+pip install --upgrade pip setuptools wheel
+pip install relaxed
+cd examples
+pip install -r requirements.txt
+```
+
+Then launch jupyter through your preferred medium (vscode, jupyterlab, etc.), making sure to use this virtual env as your kernel (e.g. you can `pip` install and run jupyter lab in this env).
+
+## Sharp bits
+For serious use with `pyhf`, e.g. in a [`neos`](http://github.com/gradhep/neos)-type workflow, it is temporarily recommended to install `pyhf` using a specific branch that is designed to be differentiable with respect to model construction:
 
 ```
 python3 -m pip install git+http://github.com/scikit-hep/pyhf.git@make_difffable_model_ctor
 ```
 We plan to merge this into `pyhf` when it's stable, and will then drop this instruction :)
 
-## cite
+## Cite
 If you use `relaxed`, please cite us! You should be able to do that from the github UI (top-right, under 'cite this repository'), but if not, see our [Zenodo DOI](https://zenodo.org/badge/latestdoi/264991846) or our [`CITATION.cff`](CITATION.cff).
 
-## acknowledgments
+## Acknowledgments
 Big thanks to all the developers of the main packages we use (`jax`, `pyhf`, `jaxopt`).
 Thanks also to [@dfm](github.com/user/dfm) for the README header inspiration ;)
