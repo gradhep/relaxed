@@ -38,7 +38,7 @@ def asimov_sig(s: Array, b: Array) -> float:
     return cast(float, q0**0.5)
 
 
-def gaussian_logpdf(
+def _gaussian_logpdf(
     bestfit_pars: Array,
     data: Array,
     cov: Array,
@@ -80,8 +80,8 @@ def gaussianity(
 
     relative_nlls_gaussian = jax.vmap(
         lambda pars, data: -(
-            gaussian_logpdf(pars, data, cov_approx)[0]
-            - gaussian_logpdf(bestfit_pars, data, cov_approx)[0]
+            _gaussian_logpdf(pars, data, cov_approx)[0]
+            - _gaussian_logpdf(bestfit_pars, data, cov_approx)[0]
         ),  # data fixes the lhood shape
         in_axes=(0, None),
     )(gaussian_parspace_samples, bestfit_pars)
