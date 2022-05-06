@@ -54,6 +54,13 @@ jobs:
         file: ./coverage.xml
         name: codecov-umbrella
         fail_ci_if_error: true
+        
+    - name: Run examples
+      run: |
+        cd examples
+        python -m pip install -r requirements.txt
+        python -m pip install jupyter
+        jupyter run *.ipynb
 
   dist:
     name: Distribution build
