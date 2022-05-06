@@ -59,8 +59,8 @@ jobs:
       run: |
         cd examples
         python -m pip install -r requirements.txt
-        python -m pip install jupyter
-        jupyter run *.ipynb
+        python -m pip install jupyter nbclient
+        jupyter execute *.ipynb
 
   dist:
     name: Distribution build
