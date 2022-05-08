@@ -1,2 +1,2 @@
 python -m pip install --upgrade .
-python -m pip install examples/requirements.txt
+python -m pip install -r examples/requirements.txt
