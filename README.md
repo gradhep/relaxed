@@ -14,6 +14,9 @@
   <a href="https://zenodo.org/badge/latestdoi/264991846">
     <img alt="Zenodo DOI" src="https://zenodo.org/badge/264991846.svg">
   </a>
+  <a href="https://mybinder.org/v2/gh/gradhep/relaxed/main?labpath=examples%2Fcuts.ipynb">
+    <img alt="Binder" src="https://mybinder.org/badge_logo.svg">
+  </a>
 </p>
 
 
@@ -63,7 +66,9 @@ python3 -m pip install relaxed
 ```
 
 ## Examples
-To run the example notebooks in `examples/`, clone the repository, then:
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/gradhep/relaxed/main?labpath=examples%2Fcuts.ipynb) <- Click here to start playing with our examples straight away (thanks to Binder)!
+
+If you'd rather run the example notebooks locally from `examples/`, you can clone the repository, then:
 
 ```
 python3 -m venv venv  # or virtualenv
