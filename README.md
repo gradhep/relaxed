@@ -14,6 +14,9 @@
   <a href="https://zenodo.org/badge/latestdoi/264991846">
     <img alt="Zenodo DOI" src="https://zenodo.org/badge/264991846.svg">
   </a>
+  <a href="https://mybinder.org/v2/gh/gradhep/relaxed/main?labpath=examples%2Fcuts.ipynb">
+    <img alt="Binder" src="https://mybinder.org/badge_logo.svg">
+  </a>
 </p>
 
 
