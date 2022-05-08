@@ -66,7 +66,9 @@ python3 -m pip install relaxed
 ```
 
 ## Examples
-To run the example notebooks in `examples/`, clone the repository, then:
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/gradhep/relaxed/main?labpath=examples%2Fcuts.ipynb) <- Click here to start playing with our examples straight away (thanks to Binder)!
+
+If you'd rather run the example notebooks locally from `examples/`, you can clone the repository, then:
 
 ```
 python3 -m venv venv  # or virtualenv
