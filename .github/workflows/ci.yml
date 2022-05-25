@@ -17,8 +17,8 @@ jobs:
     name: Format
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
-    - uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v3
     - uses: pre-commit/action@v2.0.3
       with:
         extra_args: --hook-stage manual --all-files
@@ -34,9 +34,9 @@ jobs:
         runs-on: [ubuntu-latest, macos-latest]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -48,7 +48,7 @@ jobs:
 
     - name: Upload coverage to codecov
       if: ${{ matrix.python-version == '3.7' && matrix.runs-on == 'ubuntu-latest'}}
-      uses: codecov/codecov-action@v2.1.0
+      uses: codecov/codecov-action@v3.1.0
       with:
         #token: ${{ secrets.CODECOV_TOKEN }}
         file: ./coverage.xml
@@ -68,12 +68,12 @@ jobs:
     needs: [pre-commit]
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v3
 
     - name: Build sdist and wheel
       run: pipx run build
 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         path: dist
 
