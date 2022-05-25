@@ -85,8 +85,9 @@ jobs:
       run: pipx run twine check dist/*
 
     - uses: pypa/gh-action-pypi-publish@v1.5.0
-      if: github.event_name == 'release' && github.event.action == 'published'
+      if: github.event_name == 'release' && github.event.action == 'published' && github.repository == 'gradhep/relaxed'
       with:
         user: __token__
         # Remember to generate this and set it in "GitHub Secrets"
         password: ${{ secrets.pypi_password }}
+        print_hash: true
