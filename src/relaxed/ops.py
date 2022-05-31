@@ -75,14 +75,10 @@ def hist(
 
     bins = jnp.array([-jnp.inf, *bins, jnp.inf]) if reflect_infinities else bins
 
-    edge_hi = bins[1:]  # ending bin edges ||<-
-    edge_lo = bins[:-1]  # starting bin edges ->||
-
     # get cumulative counts (area under kde) for each set of bin edges
-    cdf_up = jsp.stats.norm.cdf(edge_hi.reshape(-1, 1), loc=data, scale=bandwidth)
-    cdf_dn = jsp.stats.norm.cdf(edge_lo.reshape(-1, 1), loc=data, scale=bandwidth)
+    cdf = jsp.stats.norm.cdf(bins.reshape(-1, 1), loc=data, scale=bandwidth)
     # sum kde contributions in each bin
-    counts = (cdf_up - cdf_dn).sum(axis=1)
+    counts = (cdf[1:, :] - cdf[:-1, :]).sum(axis=1)
 
     if density:  # normalize by bin width and counts for total area = 1
         db = jnp.array(jnp.diff(bins), float)  # bin spacing
