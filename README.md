@@ -43,19 +43,19 @@ Provides differentiable ("relaxed") versions of common operations in high-energy
 Based on [`jax`](http://github.com/google/jax). Where possible, function APIs try to mimic their commonly used counterparts, e.g. fitting and hypothesis testing in [`pyhf`](http://github.com/scikit-hep/pyhf).
 
 ## Currently implemented:
-- **basic operations**:
-  - [`relaxed.hist`](src/relaxed/ops/histograms.py): histograms via kernel density estimation (tunable bandwidth).
-  - [`relaxed.cut`](src/relaxed/ops/cuts.py): approximates a hard cut with a sigmoid function (tunable slope).
-- **fitting routines**:
-  - [`relaxed.mle.fit`](src/relaxed/mle/global_fit.py): global MLE fit.
-  - [`relaxed.mle.fixed_poi_fit`](src/relaxed/infer/hypothesis_test.py): constrained fit given a value of a parameter of interest.
-- **inference**:
-  - [`relaxed.infer.hypotest`](src/relaxed/infer/hypothesis_test.py): hypothesis test based on the profile likelihood. Supports test statistics for both limit setting (`q`) and discovery (`q_0`).
-  - [`relaxed.fisher_info`](src/relaxed/ops/fisher_information.py): the fisher information matrix (of a `pyhf`-type model).
-  - [`relaxed.cramer_rao_uncert`](src/relaxed/ops/fisher_information.py): inverts the fisher information matrix to provide uncertainties valid through the [Cramér-Rao bound](https://en.wikipedia.org/wiki/Cram%C3%A9r%E2%80%93Rao_bound).
-- **metrics**:
-  - [`relaxed.metrics.gaussianity`](src/relaxed/metrics/likelihood_gaussianity.py): an experimental metric that quantifies the mean-squared difference of a likelihood function with respect to its gaussian approximation (covariance calculated using the Cramér-Rao bound above).
-  - [`relaxed.metrics.asimov_sig`](src/relaxed/metrics/significance.py): easy access to the (single- and multi-bin) stat-only expected significance.
+- **[basic operations](src/relaxed/ops.py)**:
+  - `relaxed.hist`: histograms via kernel density estimation (tunable bandwidth).
+  - `relaxed.cut`: approximates a hard cut with a sigmoid function (tunable slope).
+- **[fitting routines](src/relaxed/mle.py)**:
+  - `relaxed.mle.fit`: global MLE fit.
+  - `relaxed.mle.fixed_poi_fit`: constrained fit given a value of a parameter of interest.
+- **[inference](src/relaxed/infer.py)**:
+  - `relaxed.infer.hypotest`: hypothesis test based on the profile likelihood. Supports test statistics for both limit setting (`q`) and discovery (`q_0`).
+  - `relaxed.fisher_info`: the fisher information matrix (of a `pyhf`-type model).
+  - `relaxed.cramer_rao_uncert`: inverts the fisher information matrix to provide uncertainties valid through the [Cramér-Rao bound](https://en.wikipedia.org/wiki/Cram%C3%A9r%E2%80%93Rao_bound).
+- **[metrics](src/relaxed/metrics.py)**:
+  - `relaxed.metrics.gaussianity`: an experimental metric that quantifies the mean-squared difference of a likelihood function with respect to its gaussian approximation (covariance calculated using the Cramér-Rao bound above).
+  - `relaxed.metrics.asimov_sig`: easy access to the (single- and multi-bin) stat-only expected significance.
 
 We're maintaining a list of desired differentiable operations in [`list_of_operations.md`](list_of_operations.md) (thanks to [@cranmer](http://github.com/cranmer)) -- feel free to take inspiration or contribute with a PR if there's one you can handle :)
 
