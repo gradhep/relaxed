@@ -17,8 +17,8 @@ jobs:
     name: Format
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
-    - uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v3
     - uses: pre-commit/action@v2.0.3
       with:
         extra_args: --hook-stage manual --all-files
@@ -30,13 +30,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.7", "3.9"]
-        runs-on: [ubuntu-latest, macos-latest]
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
+        runs-on: [ubuntu-latest]
+        include:
+          - runs-on: macos-latest
+            python-version: "3.10"
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -47,11 +50,12 @@ jobs:
       run: python -m pytest -ra
 
     - name: Upload coverage to codecov
-      if: ${{ matrix.python-version == '3.7' && matrix.runs-on == 'ubuntu-latest'}}
+      if: matrix.runs-on == 'ubuntu-latest'
       uses: codecov/codecov-action@v3.1.0
       with:
         #token: ${{ secrets.CODECOV_TOKEN }}
         file: ./coverage.xml
+        flags: unittests-${{ matrix.python-version }}
         name: codecov-umbrella
         fail_ci_if_error: true
 
@@ -68,12 +72,12 @@ jobs:
     needs: [pre-commit]
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v3
 
     - name: Build sdist and wheel
       run: pipx run build
 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         path: dist
 
@@ -81,8 +85,9 @@ jobs:
       run: pipx run twine check dist/*
 
     - uses: pypa/gh-action-pypi-publish@v1.5.0
-      if: github.event_name == 'release' && github.event.action == 'published'
+      if: github.event_name == 'release' && github.event.action == 'published' && github.repository == 'gradhep/relaxed'
       with:
         user: __token__
         # Remember to generate this and set it in "GitHub Secrets"
         password: ${{ secrets.pypi_password }}
+        print_hash: true
