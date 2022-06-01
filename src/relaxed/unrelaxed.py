@@ -30,10 +30,10 @@ def relaxed_of(unrelaxed: Callable[P, R]) -> Callable[[Callable[P, R]], Callable
 
 
 @contextmanager
-def unrelaxed(relaxed: bool = False) -> Generator[None, None, None]:
+def unrelaxed(unrelaxed: bool = True) -> Generator[None, None, None]:
     """Temporarily set the unrelaxed context"""
     global _is_relaxed
     old_state: bool = _is_relaxed
-    _is_relaxed = relaxed
+    _is_relaxed = not unrelaxed
     yield
     _is_relaxed = old_state
