@@ -1,17 +1,48 @@
 """Calculate expected CLs values with hypothesis tests."""
 from __future__ import annotations
 
-__all__ = ("hypotest",)
+__all__ = (
+    "hypotest",
+    "upper_limit",
+)
 
 import logging
 from functools import partial
+from typing import Any, Literal, overload
 
 import jax.numpy as jnp
+import jaxopt
 import pyhf
 from jax import jit
 
 from relaxed._types import Array
 from relaxed.mle import fit, fixed_poi_fit
+
+
+@overload
+def hypotest(
+    test_poi: float,
+    data: Array,
+    model: pyhf.Model,
+    lr: float,
+    return_mle_pars: Literal[True],
+    test_stat: str,
+    expected_pars: Array | None,
+) -> tuple[float, Array]:
+    ...
+
+
+@overload
+def hypotest(
+    test_poi: float,
+    data: Array,
+    model: pyhf.Model,
+    lr: float,
+    return_mle_pars: Literal[False],
+    test_stat: str,
+    expected_pars: Array | None,
+) -> float:
+    ...
 
 
 def hypotest(
@@ -22,7 +53,7 @@ def hypotest(
     return_mle_pars: bool = False,
     test_stat: str = "q",
     expected_pars: Array | None = None,
-) -> tuple[Array, Array] | Array:
+) -> tuple[float, Array] | float:
     """Calculate expected CLs/p-values via hypothesis tests.
 
     Parameters
@@ -73,7 +104,7 @@ def qmu_test(
     lr: float,
     return_mle_pars: bool = False,
     expected_pars: Array | None = None,
-) -> tuple[Array, Array] | Array:
+) -> float | tuple[float, Array]:
     # hard-code 1 as inits for now
     # TODO: need to parse different inits for constrained and global fits
     # because init_pars[0] is not necessarily the poi init
@@ -109,7 +140,7 @@ def q0_test(
     lr: float,
     return_mle_pars: bool = False,
     expected_pars: Array | None = None,
-) -> tuple[Array, Array] | Array:
+) -> tuple[float, Array] | float:
     # hard-code 1 as inits for now
     # TODO: need to parse different inits for constrained and global fits
     # because init_pars[0] is not necessarily the poi init
@@ -130,3 +161,24 @@ def q0_test(
     p0 = 1 - pyhf.tensorlib.normal_cdf(jnp.sqrt(q0))
 
     return (p0, mle_pars) if return_mle_pars else p0
+
+
+def upper_limit(
+    data: Array,
+    model: pyhf.Model,
+    tol: float = 0.95,
+    solver_kwargs: dict[str, Any] | None = None,
+) -> float:
+    solver_kwargs = solver_kwargs or {}
+
+    def pipeline(mu: float) -> float:
+        cls_val = hypotest(
+            mu,
+            data,
+            model,
+            lr=1e-3,
+        )
+        return cls_val - (1 - tol)
+
+    solver = jaxopt.Bisection(pipeline, lower=-10, upper=20, maxiter=100)
+    return solver.run().params
