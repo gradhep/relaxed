@@ -2,10 +2,9 @@ from __future__ import annotations
 
 __all__ = ("relaxed_of", "unrelaxed")
 
-from functools import wraps
 from contextlib import contextmanager
+from functools import wraps
 from typing import Callable, Generator, ParamSpec, TypeVar
-
 
 P = ParamSpec("P")
 R = TypeVar("R")
