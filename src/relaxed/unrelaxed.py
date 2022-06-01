@@ -4,7 +4,9 @@ __all__ = ("relaxed_of", "unrelaxed")
 
 from contextlib import contextmanager
 from functools import wraps
-from typing import Callable, Generator, ParamSpec, TypeVar
+from typing import Callable, Generator, TypeVar
+from typing_extensions import ParamSpec
+
 
 P = ParamSpec("P")
 R = TypeVar("R")
