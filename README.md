@@ -1,6 +1,5 @@
 <p align="center">
-  :sleeping:<br>
-  <strong>relaxed</strong><br>
+  <img width="40%" alt="relaxed logo" src=relaxed-logo.png><br>
   <br>
   <a href="https://github.com/gradhep/relaxed/actions">
     <img alt="GitHub Workflow Status" src="https://github.com/gradhep/relaxed/workflows/CI/badge.svg">
