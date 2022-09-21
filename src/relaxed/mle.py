@@ -28,16 +28,6 @@ def _minimize(
     return solver.run(init_pars, *obj_args, *aux_pars)[0]
 
 
-def global_fit_objective(data: Array, model: pyhf.Model) -> Callable[[Array], float]:
-    def fit_objective(lhood_pars_to_optimize: Array) -> float:  # NLL
-        """lhood_pars_to_optimize: either all pars, or just nuisance pars"""
-        return cast(
-            float, -model.logpdf(lhood_pars_to_optimize, data)[0]
-        )  # pyhf.Model.logpdf returns list[float]
-
-    return fit_objective
-
-
 @partial(jax.jit, static_argnames=["model"])
 def fit(
     data: Array,
@@ -45,27 +35,11 @@ def fit(
     init_pars: Array,
     lr: float = 1e-3,
 ) -> Array:
-    obj = global_fit_objective(data, model)
-    fit_res = _minimize(obj, init_pars, lr)
+    def fit_objective(pars: Array) -> float:
+        return cast(float, -model.logpdf(pars, data)[0])
+
+    fit_res = _minimize(fit_objective, init_pars, lr)
     return fit_res
-
-
-def fixed_poi_fit_objective(
-    data: Array,
-    model: pyhf.Model,
-) -> Callable[[Array, float], float]:
-    poi_idx = model.config.poi_index
-
-    def fit_objective(
-        lhood_pars_to_optimize: Array, poi_condition: float
-    ) -> float:  # NLL
-        """lhood_pars_to_optimize: either all pars, or just nuisance pars"""
-        # pyhf.Model.logpdf returns list[float]
-        blank = jnp.zeros_like(jnp.asarray(model.config.suggested_init()))
-        blank += lhood_pars_to_optimize
-        return cast(float, -model.logpdf(blank.at[poi_idx].set(poi_condition), data)[0])
-
-    return fit_objective
 
 
 @partial(jax.jit, static_argnames=["model"])
@@ -76,8 +50,16 @@ def fixed_poi_fit(
     poi_condition: float,
     lr: float = 1e-3,
 ) -> Array:
-    obj = fixed_poi_fit_objective(data, model)
-    fit_res = _minimize(obj, init_pars, lr, poi_condition)
+    poi_idx = model.config.poi_index
+
+    def fit_objective(pars: Array) -> float:  # NLL
+        """lhood_pars_to_optimize: either all pars, or just nuisance pars"""
+        # pyhf.Model.logpdf returns list[float]
+        blank = jnp.zeros_like(jnp.asarray(model.config.suggested_init()))
+        blank += pars
+        return cast(float, -model.logpdf(blank.at[poi_idx].set(poi_condition), data)[0])
+
+    fit_res = _minimize(fit_objective, init_pars, lr)
     blank = jnp.zeros_like(jnp.asarray(model.config.suggested_init()))
     blank += fit_res
     poi_idx = model.config.poi_index
