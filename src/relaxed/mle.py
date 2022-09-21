@@ -3,7 +3,7 @@ from __future__ import annotations
 __all__ = ("fit", "fixed_poi_fit")
 
 from functools import partial
-from typing import TYPE_CHECKING, Any, Callable, cast
+from typing import TYPE_CHECKING, Callable, cast
 
 import jax
 import jax.numpy as jnp
@@ -18,14 +18,16 @@ if TYPE_CHECKING:
 
 @partial(jax.jit, static_argnames=["objective_fn"])
 def _minimize(
-    objective_fn: Callable[..., float], init_pars: Array, lr: float, *obj_args: Any
+    objective_fn: Callable[..., float],
+    init_pars: Array,
+    lr: float,
 ) -> Array:
-    converted_fn, aux_pars = jax.closure_convert(objective_fn, init_pars, *obj_args)
-    # aux_pars seems to be empty? took that line from jax docs example...
+    converted_fn, aux_pars = jax.closure_convert(objective_fn, init_pars)
+    # aux_pars seems to be empty -- would have assumed it was the closed-over vals
     solver = jaxopt.OptaxSolver(
         fun=converted_fn, opt=optax.adam(lr), implicit_diff=True, maxiter=5000
     )
-    return solver.run(init_pars, *obj_args, *aux_pars)[0]
+    return solver.run(init_pars, *aux_pars)[0]
 
 
 @partial(jax.jit, static_argnames=["model"])
