@@ -1,3 +1,4 @@
 celluloid
 git+http://github.com/phinate/pyhf.git@feat/jax-model-building
+neos
 plothelp
