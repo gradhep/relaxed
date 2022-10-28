@@ -86,6 +86,30 @@ def test_hypotest_grad(test_stat, expected_pars):
     jacrev(pipeline)(jnp.asarray(0.5))
 
 
+@pytest.mark.parametrize("expected_pars", [True, False])
+def test_hypotest_grad_noCLs(expected_pars):
+    pars = jnp.array([0.0, 1.0])
+    if expected_pars:
+        expars = pars
+    else:
+        expars = None
+
+    def pipeline(x):
+        model = uncorrelated_background(x * 5.0, x * 20, x * 2)
+        expected_cls = relaxed.infer.hypotest(
+            1.0,
+            model=model,
+            data=model.expected_data(pars),
+            lr=1e-2,
+            test_stat="q",
+            expected_pars=expars,
+            cls_method=False,
+        )
+        return expected_cls
+
+    jacrev(pipeline)(jnp.asarray(0.5))
+
+
 def test_wrong_test_stat():
     with pytest.raises(ValueError):
         model = example_model(0.0)
