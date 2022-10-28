@@ -22,6 +22,7 @@ def hypotest(
     return_mle_pars: bool = False,
     test_stat: str = "q",
     expected_pars: Array | None = None,
+    cls_method: bool = True,
 ) -> tuple[Array, Array] | Array:
     """Calculate expected CLs/p-values via hypothesis tests.
 
@@ -53,7 +54,9 @@ def hypotest(
         The MLE parameters, if `return_mle_pars` is True.
     """
     if test_stat == "q":
-        return qmu_test(test_poi, data, model, lr, return_mle_pars, expected_pars)
+        return qmu_test(
+            test_poi, data, model, lr, return_mle_pars, expected_pars, cls_method
+        )
     elif test_stat == "q0":
         logging.info(
             "test_poi automatically set to 0 for q0 test (bkg-only null hypothesis)"
@@ -64,7 +67,7 @@ def hypotest(
 
 
 @partial(
-    jit, static_argnames=["model", "return_mle_pars"]
+    jit, static_argnames=["model", "return_mle_pars", "cls_method"]
 )  # can remove model eventually
 def qmu_test(
     test_poi: float,
@@ -73,6 +76,7 @@ def qmu_test(
     lr: float,
     return_mle_pars: bool = False,
     expected_pars: Array | None = None,
+    cls_method: bool = True,
 ) -> tuple[Array, Array] | Array:
     # hard-code 1 as inits for now
     # TODO: need to parse different inits for constrained and global fits
@@ -93,9 +97,12 @@ def qmu_test(
     qmu = jnp.where(poi_hat < test_poi, profile_likelihood, 0.0)
 
     CLsb = 1 - pyhf.tensorlib.normal_cdf(jnp.sqrt(qmu))
-    altval = 0.0
-    CLb = 1 - pyhf.tensorlib.normal_cdf(altval)
-    CLs = CLsb / CLb
+    if cls_method:
+        altval = 0.0
+        CLb = 1 - pyhf.tensorlib.normal_cdf(altval)
+        CLs = CLsb / CLb
+    else:
+        CLs = CLsb
     return (CLs, mle_pars) if return_mle_pars else CLs
 
 
