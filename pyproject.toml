@@ -75,6 +75,7 @@ xfail_strict = true
 filterwarnings = [
   "error",
   "ignore:(ast.Str|Attribute s|ast.NameConstant|ast.Num) is deprecated:DeprecationWarning:_pytest",
+  "ignore::DeprecationWarning:pyhf.*",
 ]
 log_cli_level = "INFO"
 testpaths = [

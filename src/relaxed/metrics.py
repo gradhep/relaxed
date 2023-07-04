@@ -8,13 +8,12 @@ from typing import TYPE_CHECKING, Any, cast
 import jax
 import jax.numpy as jnp
 import jax.scipy as jsp
+from jax import Array
 from jax.random import multivariate_normal
 
 from relaxed.ops import fisher_info
 
 if TYPE_CHECKING:
-    from jax import Array
-
     PyTree = Any
 
 
