@@ -2,18 +2,18 @@ from __future__ import annotations
 
 __all__ = ("fit", "fixed_poi_fit")
 
-from functools import partial
-from typing import Callable, cast, Any, TYPE_CHECKING
 import inspect
+from typing import TYPE_CHECKING, Any, Callable, cast
 
-import jax
 import jax.numpy as jnp
 import jaxopt
 from equinox import filter_jit
 
 if TYPE_CHECKING:
     from jax import Array
+
     PyTree = Any
+
 
 @filter_jit
 def _minimize(
@@ -27,10 +27,12 @@ def _minimize(
     tol: float = 1e-6,
     other_settings: dict[str, float] | None = None,
 ):
-    other_settings = other_settings or dict()
+    other_settings = other_settings or {}
     other_settings["maxiter"] = maxiter
     other_settings["tol"] = tol
-    minimizer = getattr(jaxopt, method)(fun=fit_objective, implicit_diff=True, **other_settings)
+    minimizer = getattr(jaxopt, method)(
+        fun=fit_objective, implicit_diff=True, **other_settings
+    )
     if "bounds" in inspect.signature(minimizer.init_state).parameters:
         return minimizer.run(init_pars, bounds=bounds, model=model, data=data)[0]
     return minimizer.run(init_pars, model=model, data=data)[0]
@@ -49,7 +51,7 @@ def fit(
 ) -> Array:
     def fit_objective(pars: Array, model: PyTree, data: Array) -> float:
         return cast(float, -model.logpdf(pars, data)[0])
-    
+
     if bounds is None:
         bounds = model.config.suggested_bounds()
 
@@ -89,19 +91,18 @@ def fixed_poi_fit(
         blank = jnp.zeros_like(jnp.asarray(model.config.suggested_init()))
         blank += pars
         return cast(float, -model.logpdf(blank.at[poi_idx].set(poi_condition), data)[0])
-    
+
     if bounds is None:
         lower, upper = model.config.suggested_bounds()
         # ignore poi bounds
         upper = jnp.delete(upper, poi_idx)
         lower = jnp.delete(lower, poi_idx)
-        bounds = (lower, upper)
-    
+        bounds = jnp.array([lower, upper])
+
     if init_pars is None:
         init_pars = model.config.suggested_init()
         # ignore poi init
         init_pars = jnp.delete(init_pars, poi_idx)
-        
 
     fit_res = _minimize(
         fit_objective=fit_objective,

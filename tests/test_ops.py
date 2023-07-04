@@ -1,24 +1,27 @@
+from __future__ import annotations
+
 from functools import partial
 
+import jax
 import jax.numpy as jnp
 import numpy as np
 import pyhf
 import pytest
+from dummy_pyhf import example_model, uncorrelated_background
 from jax import jacrev, vmap
-import jax
 from jax.random import PRNGKey, normal
 
 import relaxed
-from relaxed.dummy_pyhf import example_model, uncorrelated_background
 
 jax.config.update("jax_enable_x64", True)
 
-@pytest.fixture
+
+@pytest.fixture()
 def big_sample():
     return normal(PRNGKey(1), shape=(5000,))
 
 
-@pytest.fixture
+@pytest.fixture()
 def bins():
     return np.linspace(-5, 5, 6)
 
@@ -60,8 +63,7 @@ def test_hist_grad_validity(bins):
     """Test the grads of the kde hist vs the analyitc grads of a normal dist wrt mu."""
 
     def gen_points(mu, jrng, nsamples):
-        points = normal(jrng, shape=(nsamples,)) + mu
-        return points
+        return normal(jrng, shape=(nsamples,)) + mu
 
     def bin_height(mu, jrng, bw, nsamples, bins):
         points = gen_points(mu, jrng, nsamples)
@@ -112,7 +114,7 @@ def test_fisher_info():
 def test_fisher_uncerts_validity():
     pyhf.set_backend("jax", pyhf.optimize.minuit_optimizer(verbose=1))
     m = pyhf.simplemodels.uncorrelated_background([5], [50], [5])
-    data = jnp.array([50.0] + m.config.auxdata)
+    data = jnp.array([50.0, *m.config.auxdata])
 
     fit_res = pyhf.infer.mle.fit(
         data,
@@ -139,6 +141,7 @@ def test_fisher_uncerts_validity():
 
 def test_fisher_info_grad():
     pyhf.set_backend("jax")
+
     def pipeline(x):
         model = example_model(5.0)
         pars = model.config.suggested_init()
@@ -150,6 +153,7 @@ def test_fisher_info_grad():
 
 def test_fisher_uncert_grad():
     pyhf.set_backend("jax")
+
     def pipeline(x):
         model = example_model(5.0)
         pars = model.config.suggested_init()
@@ -183,5 +187,5 @@ def test_cut_grad(keep):
 
 
 def test_invalid_cut_keep():
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="keep must be one of"):
         relaxed.cut(jnp.array([1, 2, 3]), 0, keep="frogs")

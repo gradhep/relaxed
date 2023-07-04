@@ -1,15 +1,17 @@
+from __future__ import annotations
+
 import jax.numpy as jnp
 import numpy as np
 import pyhf
 import pytest
+from dummy_pyhf import example_model, uncorrelated_background
 from jax import jacrev
 from jax.random import PRNGKey
 
 import relaxed
-from relaxed.dummy_pyhf import example_model, uncorrelated_background
 
 
-@pytest.fixture
+@pytest.fixture()
 def data():
     nBg = 8000
     nSig = 300
@@ -65,8 +67,7 @@ def test_significance_grad(data):
         bins = jnp.cumsum(jnp.array([start, *pars, (end - start) - jnp.sum(pars)]))
         sig_hist = relaxed.hist(s, bins=bins, bandwidth=bw)
         bg_hist = relaxed.hist(b, bins=bins, bandwidth=bw)
-        sig = relaxed.metrics.asimov_sig(sig_hist, bg_hist)
-        return sig
+        return relaxed.metrics.asimov_sig(sig_hist, bg_hist)
 
     jacrev(pipeline)(
         jnp.array([5.0, 10.0, 15.0]), 1e-3, (0, 70)

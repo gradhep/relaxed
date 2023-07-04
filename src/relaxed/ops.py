@@ -8,7 +8,6 @@ from typing import Any
 import jax
 import jax.numpy as jnp
 import jax.scipy as jsp
-
 from jax import Array
 
 
@@ -37,10 +36,10 @@ def cut(data: Array, cut_val: float, slope: float = 1.0, keep: str = "above") ->
     """
     if keep == "above":
         return 1 / (1 + jnp.exp(-slope * (data - cut_val)))
-    elif keep == "below":
+    if keep == "below":
         return 1 / (1 + jnp.exp(slope * (data - cut_val)))
-    else:
-        raise ValueError(f"keep must be one of 'above' or 'below', not {keep}")
+    msg = f"keep must be one of 'above' or 'below', not {keep}"
+    raise ValueError(msg)
 
 
 @partial(jax.jit, static_argnames=["density", "reflect_infinities"])
