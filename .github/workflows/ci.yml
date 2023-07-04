@@ -59,7 +59,8 @@ jobs:
 
       - name: (temp) install specific jaxopt version
         run:
-          python -m pip install --upgrade git+https://github.com/phinate/jaxopt.git@fix-lbfgsb-grad
+          python -m pip install --upgrade
+          git+https://github.com/phinate/jaxopt.git@fix-lbfgsb-grad
 
       - name: Test package
         run: >-
