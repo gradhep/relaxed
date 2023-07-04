@@ -41,6 +41,7 @@ test = [
   "pytest >=6",
   "pytest-cov >=3",
   "pyhf[jax] >=0.7.0",
+  "iminuit",
 ]
 dev = [
   "pytest >=6",
