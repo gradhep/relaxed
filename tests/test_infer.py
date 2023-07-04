@@ -1,11 +1,16 @@
+from __future__ import annotations
+
+import jax
 import jax.numpy as jnp
 import numpy as np
 import pyhf
 import pytest
+from dummy_pyhf import example_model, uncorrelated_background
 from jax import jacrev
 
 import relaxed
-from relaxed.dummy_pyhf import example_model, uncorrelated_background
+
+jax.config.update("jax_enable_x64", True)
 
 
 @pytest.mark.parametrize("test_stat", ["q", "q0"])
@@ -17,10 +22,11 @@ def test_hypotest_validity(phi, test_stat):
     elif test_stat == "q0":
         analytic_pars = jnp.array([1.0, 1.0])  # nominal sig+bkg hypothesis
     else:
-        raise ValueError(f"Unknown test statistic: {test_stat}")
+        msg = f"Unknown test statistic: {test_stat}"
+        raise ValueError(msg)
     model, yields = example_model(phi, return_yields=True)
     relaxed_cls = relaxed.infer.hypotest(
-        1, model.expected_data(analytic_pars), model, lr=1e-3, test_stat=test_stat
+        1, model.expected_data(analytic_pars), model, test_stat=test_stat
     )
     m = pyhf.simplemodels.uncorrelated_background(*yields)
     pyhf_cls = pyhf.infer.hypotest(
@@ -29,7 +35,6 @@ def test_hypotest_validity(phi, test_stat):
     assert np.allclose(
         relaxed_cls,
         pyhf_cls,
-        atol=0.001,
     )  # tested working without dummy_pyhf on a pyhf fork, but not main yet
 
 
@@ -41,13 +46,13 @@ def test_hypotest_expected(test_stat):
     elif test_stat == "q0":
         analytic_pars = jnp.array([1.0, 1.0])  # nominal sig+bkg hypothesis
     else:
-        raise ValueError(f"Unknown test statistic: {test_stat}")
+        msg = f"Unknown test statistic: {test_stat}"
+        raise ValueError(msg)
     model, yields = example_model(5.0, return_yields=True)
     relaxed_cls = relaxed.infer.hypotest(
         1,
         model.expected_data(analytic_pars),
         model,
-        lr=1e-3,
         test_stat=test_stat,
         expected_pars=analytic_pars,
     )
@@ -58,7 +63,6 @@ def test_hypotest_expected(test_stat):
     assert np.allclose(
         relaxed_cls,
         pyhf_cls,
-        atol=0.001,
     )  # tested working without dummy_pyhf on a pyhf fork, but not main yet
 
 
@@ -66,22 +70,17 @@ def test_hypotest_expected(test_stat):
 @pytest.mark.parametrize("expected_pars", [True, False])
 def test_hypotest_grad(test_stat, expected_pars):
     pars = jnp.array([0.0, 1.0])
-    if expected_pars:
-        expars = pars
-    else:
-        expars = None
+    expars = pars if expected_pars else None
 
     def pipeline(x):
         model = uncorrelated_background(x * 5.0, x * 20, x * 2)
-        expected_cls = relaxed.infer.hypotest(
+        return relaxed.infer.hypotest(
             1.0,
             model=model,
             data=model.expected_data(pars),
-            lr=1e-2,
             test_stat=test_stat,
             expected_pars=expars,
         )
-        return expected_cls
 
     jacrev(pipeline)(jnp.asarray(0.5))
 
@@ -89,34 +88,28 @@ def test_hypotest_grad(test_stat, expected_pars):
 @pytest.mark.parametrize("expected_pars", [True, False])
 def test_hypotest_grad_noCLs(expected_pars):
     pars = jnp.array([0.0, 1.0])
-    if expected_pars:
-        expars = pars
-    else:
-        expars = None
+    expars = pars if expected_pars else None
 
     def pipeline(x):
         model = uncorrelated_background(x * 5.0, x * 20, x * 2)
-        expected_cls = relaxed.infer.hypotest(
+        return relaxed.infer.hypotest(
             1.0,
             model=model,
             data=model.expected_data(pars),
-            lr=1e-2,
             test_stat="q",
             expected_pars=expars,
             cls_method=False,
         )
-        return expected_cls
 
     jacrev(pipeline)(jnp.asarray(0.5))
 
 
 def test_wrong_test_stat():
-    with pytest.raises(ValueError):
-        model = example_model(0.0)
+    model = example_model(0.0)
+    with pytest.raises(ValueError, match="Unknown test statistic: q1"):
         relaxed.infer.hypotest(
             1,
             model.expected_data(jnp.array([0.0, 1.0])),
             model,
-            lr=1e-2,
             test_stat="q1",
         )

@@ -2,66 +2,119 @@ from __future__ import annotations
 
 __all__ = ("fit", "fixed_poi_fit")
 
-from functools import partial
-from typing import TYPE_CHECKING, Callable, cast
+import inspect
+from typing import TYPE_CHECKING, Any, Callable, cast
 
-import jax
 import jax.numpy as jnp
 import jaxopt
-import optax
-
-from relaxed._types import Array
+from equinox import filter_jit
 
 if TYPE_CHECKING:
-    import pyhf
+    from jax import Array
+
+    PyTree = Any
 
 
-@partial(jax.jit, static_argnames=["objective_fn"])
+@filter_jit
 def _minimize(
-    objective_fn: Callable[..., float],
+    fit_objective: Callable[[Array], float],
+    model: PyTree,
+    data: Array,
     init_pars: Array,
-    lr: float,
-) -> Array:
-    converted_fn, aux_pars = jax.closure_convert(objective_fn, init_pars)
-    # aux_pars seems to be empty -- would have assumed it was the closed-over vals
-    solver = jaxopt.OptaxSolver(
-        fun=converted_fn, opt=optax.adam(lr), implicit_diff=True, maxiter=5000
+    bounds: Array,
+    method: str = "LBFGSB",
+    maxiter: int = 500,
+    tol: float = 1e-6,
+    other_settings: dict[str, float] | None = None,
+):
+    other_settings = other_settings or {}
+    other_settings["maxiter"] = maxiter
+    other_settings["tol"] = tol
+    minimizer = getattr(jaxopt, method)(
+        fun=fit_objective, implicit_diff=True, **other_settings
     )
-    return solver.run(init_pars, *aux_pars)[0]
+    if "bounds" in inspect.signature(minimizer.init_state).parameters:
+        return minimizer.run(init_pars, bounds=bounds, model=model, data=data)[0]
+    return minimizer.run(init_pars, model=model, data=data)[0]
 
 
-@partial(jax.jit, static_argnames=["model"])
+@filter_jit
 def fit(
     data: Array,
-    model: pyhf.Model,
-    init_pars: Array,
-    lr: float = 1e-3,
+    model: PyTree,
+    init_pars: Array | None = None,
+    bounds: tuple[Array, Array] | None = None,
+    method: str = "LBFGSB",
+    maxiter: int = 500,
+    tol: float = 1e-6,
+    other_settings: dict[str, float] | None = None,
 ) -> Array:
-    def fit_objective(pars: Array) -> float:
+    def fit_objective(pars: Array, model: PyTree, data: Array) -> float:
         return cast(float, -model.logpdf(pars, data)[0])
 
-    fit_res = _minimize(fit_objective, init_pars, lr)
-    return fit_res
+    if bounds is None:
+        bounds = model.config.suggested_bounds()
+
+    if init_pars is None:
+        init_pars = model.config.suggested_init()
+
+    return _minimize(
+        fit_objective=fit_objective,
+        model=model,
+        data=data,
+        init_pars=init_pars,
+        bounds=bounds,
+        method=method,
+        maxiter=maxiter,
+        tol=tol,
+        other_settings=other_settings,
+    )
 
 
-@partial(jax.jit, static_argnames=["model"])
+@filter_jit
 def fixed_poi_fit(
     data: Array,
-    model: pyhf.Model,
-    init_pars: Array,
+    model: PyTree,
     poi_condition: float,
-    lr: float = 1e-3,
+    init_pars: Array | None = None,
+    bounds: Array | None = None,
+    method: str = "LBFGSB",
+    maxiter: int = 500,
+    tol: float = 1e-6,
+    other_settings: dict[str, float] | None = None,
 ) -> Array:
     poi_idx = model.config.poi_index
 
-    def fit_objective(pars: Array) -> float:  # NLL
+    def fit_objective(pars: Array, model: PyTree, data: Array) -> float:  # NLL
         """lhood_pars_to_optimize: either all pars, or just nuisance pars"""
         # pyhf.Model.logpdf returns list[float]
         blank = jnp.zeros_like(jnp.asarray(model.config.suggested_init()))
         blank += pars
         return cast(float, -model.logpdf(blank.at[poi_idx].set(poi_condition), data)[0])
 
-    fit_res = _minimize(fit_objective, init_pars, lr)
+    if bounds is None:
+        lower, upper = model.config.suggested_bounds()
+        # ignore poi bounds
+        upper = jnp.delete(upper, poi_idx)
+        lower = jnp.delete(lower, poi_idx)
+        bounds = jnp.array([lower, upper])
+
+    if init_pars is None:
+        init_pars = model.config.suggested_init()
+        # ignore poi init
+        init_pars = jnp.delete(init_pars, poi_idx)
+
+    fit_res = _minimize(
+        fit_objective=fit_objective,
+        model=model,
+        data=data,
+        init_pars=init_pars,
+        bounds=bounds,
+        method=method,
+        maxiter=maxiter,
+        tol=tol,
+        other_settings=other_settings,
+    )
     blank = jnp.zeros_like(jnp.asarray(model.config.suggested_init()))
     blank += fit_res
     poi_idx = model.config.poi_index

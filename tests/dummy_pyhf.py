@@ -4,37 +4,50 @@ __all__ = ("example_model", "uncorrelated_background")
 
 from typing import Any, Iterable
 
+import jax
 import jax.numpy as jnp
 import pyhf
+from equinox import Module as PyTree
 
 
-# class-based
-class _Config:
-    def __init__(self) -> None:
+class _Config(PyTree):
+    poi_index: int
+    npars: int
+    auxdata: jax.Array
+
+    def __init__(self, aux) -> None:
         self.poi_index = 0
         self.npars = 2
+        self.auxdata = aux
 
-    def suggested_init(self) -> jnp.ndarray:
+    def suggested_init(self) -> jax.Array:
         return jnp.asarray([1.0, 1.0])
 
+    def suggested_bounds(self) -> tuple[jax.Array, jax.Array]:
+        return jnp.asarray([[0.0, 0.0], [10.0, 10.0]])
 
-class Model:
+
+class Model(PyTree):
     """Dummy class to mimic the functionality of `pyhf.Model`."""
 
+    sig: jax.Array
+    nominal: jax.Array
+    uncert: jax.Array
+    factor: jax.Array
+    config: _Config
+
     def __init__(self, spec: Iterable[Any]) -> None:
-        pyhf.set_backend("jax")
         self.sig, self.nominal, self.uncert = spec
         self.factor = (self.nominal / self.uncert) ** 2
-        self.aux = 1.0 * self.factor
-        self.config = _Config()
+        self.config = _Config(1.0 * self.factor)
 
-    def expected_data(self, pars: jnp.ndarray) -> jnp.ndarray:
+    def expected_data(self, pars: jax.Array) -> jax.Array:
         mu, gamma = pars
         expected_main = jnp.asarray([gamma * self.nominal + mu * self.sig])
-        aux_data = jnp.asarray([self.aux])
-        return jnp.concatenate([expected_main, aux_data])
+        return jnp.concatenate([expected_main, jnp.array([self.config.auxdata])])
 
-    def logpdf(self, pars: jnp.ndarray, data: jnp.ndarray) -> jnp.ndarray:
+    # logpdf as the call method
+    def logpdf(self, pars: jax.Array, data: jax.Array) -> jax.Array:
         maindata, auxdata = data
         main, _ = self.expected_data(pars)
         _, gamma = pars
@@ -44,7 +57,7 @@ class Model:
         return [jnp.sum(jnp.asarray([main + constraint]), axis=None)]
 
 
-def uncorrelated_background(s: jnp.ndarray, b: jnp.ndarray, db: jnp.ndarray) -> Model:
+def uncorrelated_background(s: jax.Array, b: jax.Array, db: jax.Array) -> Model:
     """Dummy class to mimic the functionality of `pyhf.simplemodels.hepdata_like`."""
     return Model([s, b, db])
 
@@ -67,5 +80,4 @@ def example_model(
 
     if return_yields:
         return model, yields
-    else:
-        return model
+    return model

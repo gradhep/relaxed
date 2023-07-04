@@ -4,21 +4,23 @@ from __future__ import annotations
 __all__ = ("hypotest",)
 
 import logging
-from functools import partial
+from typing import Any
 
 import jax.numpy as jnp
 import pyhf
-from jax import jit
+from equinox import filter_jit
+from jax import Array
 
-from relaxed._types import Array
 from relaxed.mle import fit, fixed_poi_fit
 
+PyTree = Any
 
+
+@filter_jit
 def hypotest(
     test_poi: float,
     data: Array,
-    model: pyhf.Model,
-    lr: float,
+    model: PyTree,
     return_mle_pars: bool = False,
     test_stat: str = "q",
     expected_pars: Array | None = None,
@@ -55,25 +57,23 @@ def hypotest(
     """
     if test_stat == "q":
         return qmu_test(
-            test_poi, data, model, lr, return_mle_pars, expected_pars, cls_method
+            test_poi, data, model, return_mle_pars, expected_pars, cls_method
         )
-    elif test_stat == "q0":
+    if test_stat == "q0":
         logging.info(
             "test_poi automatically set to 0 for q0 test (bkg-only null hypothesis)"
         )
-        return q0_test(0.0, data, model, lr, return_mle_pars, expected_pars)
-    else:
-        raise ValueError(f"Unknown test statistic: {test_stat}")
+        return q0_test(0.0, data, model, return_mle_pars, expected_pars)
+
+    msg = f"Unknown test statistic: {test_stat}"
+    raise ValueError(msg)
 
 
-@partial(
-    jit, static_argnames=["model", "return_mle_pars", "cls_method"]
-)  # can remove model eventually
+@filter_jit
 def qmu_test(
     test_poi: float,
     data: Array,
-    model: pyhf.Model,
-    lr: float,
+    model: PyTree,
     return_mle_pars: bool = False,
     expected_pars: Array | None = None,
     cls_method: bool = True,
@@ -83,10 +83,10 @@ def qmu_test(
     # because init_pars[0] is not necessarily the poi init
     init_pars = jnp.asarray(model.config.suggested_init())
     conditional_pars = fixed_poi_fit(
-        data, model, poi_condition=test_poi, init_pars=init_pars[:-1], lr=lr
+        data, model, poi_condition=test_poi, init_pars=init_pars[:-1]
     )
     if expected_pars is None:
-        mle_pars = fit(data, model, init_pars=init_pars, lr=lr)
+        mle_pars = fit(data, model, init_pars=init_pars)
     else:
         mle_pars = expected_pars
     profile_likelihood = -2 * (
@@ -106,14 +106,11 @@ def qmu_test(
     return (CLs, mle_pars) if return_mle_pars else CLs
 
 
-@partial(
-    jit, static_argnames=["model", "return_mle_pars"]
-)  # can remove model eventually
+@filter_jit
 def q0_test(
     test_poi: float,
     data: Array,
-    model: pyhf.Model,
-    lr: float,
+    model: PyTree,
     return_mle_pars: bool = False,
     expected_pars: Array | None = None,
 ) -> tuple[Array, Array] | Array:
@@ -122,10 +119,13 @@ def q0_test(
     # because init_pars[0] is not necessarily the poi init
     init_pars = jnp.asarray(model.config.suggested_init())
     conditional_pars = fixed_poi_fit(
-        data, model, poi_condition=test_poi, init_pars=init_pars[:-1], lr=lr
+        data,
+        model,
+        poi_condition=test_poi,
+        init_pars=init_pars[:-1],
     )
     if expected_pars is None:
-        mle_pars = fit(data, model, init_pars=init_pars, lr=lr)
+        mle_pars = fit(data, model, init_pars=init_pars)
     else:
         mle_pars = expected_pars
     profile_likelihood = -2 * (

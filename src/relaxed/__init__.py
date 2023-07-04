@@ -1,4 +1,13 @@
-from relaxed._version import version as __version__
+"""
+Copyright (c) 2023 Nathan Simpson. All rights reserved.
+
+relaxed: Differentiable versions of common HEP operations.
+"""
+
+
+from __future__ import annotations
+
+__version__ = "0.3.0"
 
 __all__ = (
     "__version__",
@@ -9,8 +18,7 @@ __all__ = (
     "infer",
     "metrics",
     "cut",
-    "dummy_pyhf",
 )
 
-from relaxed import dummy_pyhf, infer, metrics, mle
+from relaxed import infer, metrics, mle
 from relaxed.ops import cramer_rao_uncert, cut, fisher_info, hist
