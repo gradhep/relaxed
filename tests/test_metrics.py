@@ -6,7 +6,7 @@ from jax import jacrev
 from jax.random import PRNGKey
 
 import relaxed
-from relaxed.dummy_pyhf import example_model
+from relaxed.dummy_pyhf import example_model, uncorrelated_background
 
 
 @pytest.fixture
@@ -21,7 +21,11 @@ def data():
 
 def test_gaussianity():
     pyhf.set_backend("jax")
-    m = pyhf.simplemodels.uncorrelated_background([5, 5], [50, 50], [5, 5])
+    m = uncorrelated_background(
+        jnp.array([5.0, 5.0]),
+        jnp.array([10.0, 10.0]),
+        jnp.array([0.1, 0.1]),
+    )
     pars = jnp.asarray(m.config.suggested_init())
     data = jnp.asarray(m.expected_data(pars))
     relaxed.metrics.gaussianity(m, pars, data, PRNGKey(0))

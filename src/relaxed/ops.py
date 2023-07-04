@@ -9,7 +9,7 @@ import jax
 import jax.numpy as jnp
 import jax.scipy as jsp
 
-from relaxed._types import Array
+from jax import Array
 
 
 @partial(jax.jit, static_argnames=["keep"])
@@ -94,7 +94,7 @@ def hist(
     return counts
 
 
-@partial(jax.jit, static_argnames=["model"])
+@jax.jit
 def fisher_info(model: Any, pars: Array, data: Array) -> Array:
     """Fisher information matrix for a model with a logpdf method.
 
@@ -116,7 +116,7 @@ def fisher_info(model: Any, pars: Array, data: Array) -> Array:
     return jnp.linalg.inv(-jax.hessian(lambda p, d: model.logpdf(p, d)[0])(pars, data))
 
 
-@partial(jax.jit, static_argnames=["model"])
+@jax.jit
 def cramer_rao_uncert(model: Any, pars: Array, data: Array) -> Array:
     """Approximate uncertainties on MLE parameters for a model with a logpdf method.
     Defined as the square root of the diagonal of the Fisher information matrix, valid

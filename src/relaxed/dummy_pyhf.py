@@ -13,9 +13,11 @@ from equinox import Module as PyTree
 class _Config(PyTree):
     poi_index: int
     npars: int
-    def __init__(self) -> None:
+    auxdata: jax.Array
+    def __init__(self, aux) -> None:
         self.poi_index = 0
         self.npars = 2
+        self.auxdata = aux
 
     def suggested_init(self) -> jax.Array:
         return jnp.asarray([1.0, 1.0])
@@ -30,20 +32,17 @@ class Model(PyTree):
     nominal: jax.Array
     uncert: jax.Array
     factor: jax.Array
-    aux: jax.Array
     config: _Config
 
     def __init__(self, spec: Iterable[Any]) -> None:
         self.sig, self.nominal, self.uncert = spec
         self.factor = (self.nominal / self.uncert) ** 2
-        self.aux = 1.0 * self.factor
-        self.config = _Config()
+        self.config = _Config(1.0 * self.factor)
 
     def expected_data(self, pars: jax.Array) -> jax.Array:
         mu, gamma = pars
         expected_main = jnp.asarray([gamma * self.nominal + mu * self.sig])
-        aux_data = jnp.asarray([self.aux])
-        return jnp.concatenate([expected_main, aux_data])
+        return jnp.concatenate([expected_main, jnp.array([self.config.auxdata])])
 
     # logpdf as the call method
     def logpdf(self, pars: jax.Array, data: jax.Array) -> jax.Array:

@@ -3,18 +3,19 @@ from __future__ import annotations
 __all__ = ("asimov_sig", "gaussianity")
 
 from functools import partial
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, cast, Any
 
 import jax
 import jax.numpy as jnp
 import jax.scipy as jsp
 from jax.random import PRNGKey, multivariate_normal
 
-from relaxed._types import Array
 from relaxed.ops import fisher_info
 
 if TYPE_CHECKING:
-    import pyhf
+    from jax import Array
+    PyTree = Any
+
 
 
 @jax.jit
@@ -48,9 +49,9 @@ def _gaussian_logpdf(
     )
 
 
-@partial(jax.jit, static_argnames=["model", "n_samples"])
+@partial(jax.jit, static_argnames=["n_samples",])
 def gaussianity(
-    model: pyhf.Model,
+    model: PyTree,
     bestfit_pars: Array,
     data: Array,
     rng_key: PRNGKey,

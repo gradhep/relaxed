@@ -5,11 +5,13 @@ import numpy as np
 import pyhf
 import pytest
 from jax import jacrev, vmap
+import jax
 from jax.random import PRNGKey, normal
 
 import relaxed
-from relaxed.dummy_pyhf import example_model
+from relaxed.dummy_pyhf import example_model, uncorrelated_background
 
+jax.config.update("jax_enable_x64", True)
 
 @pytest.fixture
 def big_sample():
@@ -99,6 +101,7 @@ def test_hist_grad_validity(bins):
 
 
 def test_fisher_info():
+    pyhf.set_backend("jax")
     model = example_model(5.0)
     pars = model.config.suggested_init()
     data = model.expected_data(pars)
@@ -108,17 +111,14 @@ def test_fisher_info():
 
 def test_fisher_uncerts_validity():
     pyhf.set_backend("jax", pyhf.optimize.minuit_optimizer(verbose=1))
-
-    m = pyhf.simplemodels.uncorrelated_background([5, 5], [50, 50], [5, 5])
-
-    data = jnp.array([50.0, 50.0] + m.config.auxdata)
+    m = pyhf.simplemodels.uncorrelated_background([5], [50], [5])
+    data = jnp.array([50.0] + m.config.auxdata)
 
     fit_res = pyhf.infer.mle.fit(
         data,
         m,
         return_uncertainties=True,
         par_bounds=[
-            [-1, 10],
             [-1, 10],
             [-1, 10],
         ],  # fit @ boundary produces unstable uncerts
@@ -128,11 +128,17 @@ def test_fisher_uncerts_validity():
     mle_pars, mle_uncerts = fit_res[:, 0], fit_res[:, 1]
 
     # uncertainties from autodiff hessian
-    relaxed_uncerts = relaxed.cramer_rao_uncert(m, mle_pars, data)
-    assert np.allclose(mle_uncerts, relaxed_uncerts, rtol=5e-2)
+    dummy_m = uncorrelated_background(
+        jnp.array([5]),
+        jnp.array([50]),
+        jnp.array([5]),
+    )
+    relaxed_uncerts = relaxed.cramer_rao_uncert(dummy_m, mle_pars, data)
+    assert np.allclose(mle_uncerts, relaxed_uncerts, rtol=0.05)
 
 
 def test_fisher_info_grad():
+    pyhf.set_backend("jax")
     def pipeline(x):
         model = example_model(5.0)
         pars = model.config.suggested_init()
@@ -143,6 +149,7 @@ def test_fisher_info_grad():
 
 
 def test_fisher_uncert_grad():
+    pyhf.set_backend("jax")
     def pipeline(x):
         model = example_model(5.0)
         pars = model.config.suggested_init()
