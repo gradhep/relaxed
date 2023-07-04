@@ -27,8 +27,7 @@
 [github-discussions-badge]:
   https://img.shields.io/static/v1?label=Discussions&message=Ask&color=blue&logo=github
 [github-discussions-link]: https://github.com/gradhep/relaxed/discussions
-[gitter-badge]:
-  https://badges.gitter.im/https://github.com/gradhep/relaxed/community.svg
+[gitter-badge]: https://badges.gitter.im/https://github.com/gradhep/relaxed/community.svg
 [gitter-link]:
   https://gitter.im/https://github.com/gradhep/relaxed/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
 [pypi-link]: https://pypi.org/project/relaxed/
@@ -38,44 +37,37 @@
 [rtd-link]: https://relaxed.readthedocs.io/en/latest/?badge=latest
 [sk-badge]: https://scikit-hep.org/assets/images/Scikit--HEP-Project-blue.svg
 
-Provides differentiable ("relaxed") versions of common operations in high-energy
-physics.
+Provides differentiable ("relaxed") versions of common operations in high-energy physics.
 
-Based on [`jax`](http://github.com/google/jax). Where possible, function APIs
-try to mimic their commonly used counterparts, e.g. fitting and hypothesis
-testing in [`pyhf`](http://github.com/scikit-hep/pyhf).
+Based on [`jax`](http://github.com/google/jax). Where possible, function APIs try to mimic their
+commonly used counterparts, e.g. fitting and hypothesis testing in
+[`pyhf`](http://github.com/scikit-hep/pyhf).
 
 ## Currently implemented:
 
 - **[basic operations](src/relaxed/ops.py)**:
-  - `relaxed.hist`: histograms via kernel density estimation (tunable
-    bandwidth).
-  - `relaxed.cut`: approximates a hard cut with a sigmoid function (tunable
-    slope).
+  - `relaxed.hist`: histograms via kernel density estimation (tunable bandwidth).
+  - `relaxed.cut`: approximates a hard cut with a sigmoid function (tunable slope).
 - **[fitting routines](src/relaxed/mle.py)**:
   - `relaxed.mle.fit`: global MLE fit.
-  - `relaxed.mle.fixed_poi_fit`: constrained fit given a value of a parameter of
-    interest.
+  - `relaxed.mle.fixed_poi_fit`: constrained fit given a value of a parameter of interest.
 - **[inference](src/relaxed/infer.py)**:
-  - `relaxed.infer.hypotest`: hypothesis test based on the profile likelihood.
-    Supports test statistics for both limit setting (`q`) and discovery (`q_0`).
-  - `relaxed.fisher_info`: the fisher information matrix (of a `pyhf`-type
-    model).
-  - `relaxed.cramer_rao_uncert`: inverts the fisher information matrix to
-    provide uncertainties valid through the
+  - `relaxed.infer.hypotest`: hypothesis test based on the profile likelihood. Supports test
+    statistics for both limit setting (`q`) and discovery (`q_0`).
+  - `relaxed.fisher_info`: the fisher information matrix (of a `pyhf`-type model).
+  - `relaxed.cramer_rao_uncert`: inverts the fisher information matrix to provide uncertainties
+    valid through the
     [Cramér-Rao bound](https://en.wikipedia.org/wiki/Cram%C3%A9r%E2%80%93Rao_bound).
 - **[metrics](src/relaxed/metrics.py)**:
-  - `relaxed.metrics.gaussianity`: an experimental metric that quantifies the
-    mean-squared difference of a likelihood function with respect to its
-    gaussian approximation (covariance calculated using the Cramér-Rao bound
-    above).
-  - `relaxed.metrics.asimov_sig`: easy access to the (single- and multi-bin)
-    stat-only expected significance.
+  - `relaxed.metrics.gaussianity`: an experimental metric that quantifies the mean-squared
+    difference of a likelihood function with respect to its gaussian approximation (covariance
+    calculated using the Cramér-Rao bound above).
+  - `relaxed.metrics.asimov_sig`: easy access to the (single- and multi-bin) stat-only expected
+    significance.
 
 We're maintaining a list of desired differentiable operations in
-[`list_of_operations.md`](list_of_operations.md) (thanks to
-[@cranmer](http://github.com/cranmer)) -- feel free to take inspiration or
-contribute with a PR if there's one you can handle :)
+[`list_of_operations.md`](list_of_operations.md) (thanks to [@cranmer](http://github.com/cranmer))
+-- feel free to take inspiration or contribute with a PR if there's one you can handle :)
 
 ## Install
 
@@ -88,11 +80,10 @@ python3 -m pip install relaxed
 ## Examples
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/gradhep/relaxed/main?labpath=examples%2Fcuts.ipynb)
-<- Click here to start playing with our examples straight away (thanks to
-Binder)!
+<- Click here to start playing with our examples straight away (thanks to Binder)!
 
-If you'd rather run the example notebooks locally from `examples/`, you can
-clone the repository, then:
+If you'd rather run the example notebooks locally from `examples/`, you can clone the repository,
+then:
 
 ```
 python3 -m venv venv  # or virtualenv
@@ -103,33 +94,28 @@ cd examples
 pip install -r requirements.txt
 ```
 
-Then launch jupyter through your preferred medium (vscode, jupyterlab, etc.),
-making sure to use this virtual env as your kernel (e.g. you can `pip` install
-and run jupyter lab in this env).
+Then launch jupyter through your preferred medium (vscode, jupyterlab, etc.), making sure to use
+this virtual env as your kernel (e.g. you can `pip` install and run jupyter lab in this env).
 
 ## Sharp bits
 
-For serious use with `pyhf`, e.g. in a
-[`neos`](http://github.com/gradhep/neos)-type workflow, it is temporarily
-recommended to install `pyhf` using a specific branch that is designed to be
+For serious use with `pyhf`, e.g. in a [`neos`](http://github.com/gradhep/neos)-type workflow, it is
+temporarily recommended to install `pyhf` using a specific branch that is designed to be
 differentiable with respect to model construction:
 
 ```
 python3 -m pip install git+http://github.com/scikit-hep/pyhf.git@make_difffable_model_ctor
 ```
 
-We plan to merge this into `pyhf` when it's stable, and will then drop this
-instruction :)
+We plan to merge this into `pyhf` when it's stable, and will then drop this instruction :)
 
 ## Cite
 
-If you use `relaxed`, please cite us! You should be able to do that from the
-github UI (top-right, under 'cite this repository'), but if not, see our
-[Zenodo DOI](https://zenodo.org/badge/latestdoi/264991846) or our
-[`CITATION.cff`](CITATION.cff).
+If you use `relaxed`, please cite us! You should be able to do that from the github UI (top-right,
+under 'cite this repository'), but if not, see our
+[Zenodo DOI](https://zenodo.org/badge/latestdoi/264991846) or our [`CITATION.cff`](CITATION.cff).
 
 ## Acknowledgments
 
-Big thanks to all the developers of the main packages we use (`jax`, `pyhf`,
-`jaxopt`). Thanks also to [@dfm](github.com/user/dfm) for the README header
-inspiration ;)
+Big thanks to all the developers of the main packages we use (`jax`, `pyhf`, `jaxopt`). Thanks also
+to [@dfm](github.com/user/dfm) for the README header inspiration ;)
