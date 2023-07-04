@@ -25,6 +25,7 @@ filterwarnings = [
     "ignore:the imp module is deprecated in favour of importlib.*:DeprecationWarning",
     "ignore:JAX on Mac ARM machines is experimental and minimally tested.*:UserWarning",
     "ignore::FutureWarning",
+    "ignore::DeprecationWarning",
 ]
 testpaths = [
     "tests",
@@ -37,7 +38,7 @@ all = true
 
 [tool.mypy]
 files = "src"
-python_version = "3.7"
+python_version = "3.8"
 warn_unused_configs = true
 
 disallow_any_generics = true

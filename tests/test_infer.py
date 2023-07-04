@@ -3,10 +3,12 @@ import numpy as np
 import pyhf
 import pytest
 from jax import jacrev
+import jax
 
 import relaxed
 from relaxed.dummy_pyhf import example_model, uncorrelated_background
 
+jax.config.update("jax_enable_x64", True)
 
 @pytest.mark.parametrize("test_stat", ["q", "q0"])
 @pytest.mark.parametrize("phi", np.linspace(0.0, 10.0, 5))
@@ -20,7 +22,7 @@ def test_hypotest_validity(phi, test_stat):
         raise ValueError(f"Unknown test statistic: {test_stat}")
     model, yields = example_model(phi, return_yields=True)
     relaxed_cls = relaxed.infer.hypotest(
-        1, model.expected_data(analytic_pars), model, lr=1e-3, test_stat=test_stat
+        1, model.expected_data(analytic_pars), model, test_stat=test_stat
     )
     m = pyhf.simplemodels.uncorrelated_background(*yields)
     pyhf_cls = pyhf.infer.hypotest(
@@ -29,7 +31,6 @@ def test_hypotest_validity(phi, test_stat):
     assert np.allclose(
         relaxed_cls,
         pyhf_cls,
-        atol=0.001,
     )  # tested working without dummy_pyhf on a pyhf fork, but not main yet
 
 
@@ -47,7 +48,6 @@ def test_hypotest_expected(test_stat):
         1,
         model.expected_data(analytic_pars),
         model,
-        lr=1e-3,
         test_stat=test_stat,
         expected_pars=analytic_pars,
     )
@@ -58,7 +58,6 @@ def test_hypotest_expected(test_stat):
     assert np.allclose(
         relaxed_cls,
         pyhf_cls,
-        atol=0.001,
     )  # tested working without dummy_pyhf on a pyhf fork, but not main yet
 
 
@@ -77,7 +76,6 @@ def test_hypotest_grad(test_stat, expected_pars):
             1.0,
             model=model,
             data=model.expected_data(pars),
-            lr=1e-2,
             test_stat=test_stat,
             expected_pars=expars,
         )
@@ -100,7 +98,6 @@ def test_hypotest_grad_noCLs(expected_pars):
             1.0,
             model=model,
             data=model.expected_data(pars),
-            lr=1e-2,
             test_stat="q",
             expected_pars=expars,
             cls_method=False,
@@ -117,6 +114,5 @@ def test_wrong_test_stat():
             1,
             model.expected_data(jnp.array([0.0, 1.0])),
             model,
-            lr=1e-2,
             test_stat="q1",
         )
