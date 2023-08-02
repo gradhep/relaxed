@@ -3,25 +3,51 @@ from __future__ import annotations
 __all__ = ("fit", "fixed_poi_fit")
 
 import inspect
-from typing import TYPE_CHECKING, Any, Callable, cast
+from typing import TYPE_CHECKING, Any, Callable, cast, Sequence
 
-import jax.numpy as jnp
 import jaxopt
 from equinox import filter_jit
+import jax
+import numpy as np
+import jax.numpy as jnp
+from jax import Array
+
 
 if TYPE_CHECKING:
-    from jax import Array
-
+    from jax.typing import ArrayLike
     PyTree = Any
 
+
+def _get_bounds(bounds: dict[str, ArrayLike], init_pars: dict[str, ArrayLike]) -> tuple[dict[str, ArrayLike], dict[str, ArrayLike]]:
+    """Convert dict of bounds to a dict of lower and a dict of upper bounds."""
+    lower = {}
+    upper = {}
+
+    for k, v in bounds.items():
+        # Convert to array for easy manipulation
+        v = jnp.asarray(v)
+
+        # Check if v is 1D or 2D
+        if v.ndim == 1:
+            if isinstance(init_pars[k], (list, jax.Array, np.ndarray)) and init_pars[k].size > 1:  # If the initial parameter is a list or array
+                lower[k] = jnp.array([v[0]] * len(init_pars[k]))
+                upper[k] = jnp.array([v[1]] * len(init_pars[k]))
+            else:  # If the initial parameter is a single value
+                lower[k] = v[0]
+                upper[k] = v[1]
+        else:
+            lower[k] = jnp.array([item[0] for item in v])
+            upper[k] = jnp.array([item[1] for item in v])
+
+    return lower, upper
 
 @filter_jit
 def _minimize(
     fit_objective: Callable[[Array], float],
     model: PyTree,
     data: Array,
-    init_pars: Array,
-    bounds: Array,
+    init_pars: dict[str, ArrayLike],
+    bounds: dict[str, ArrayLike],
     method: str = "LBFGSB",
     maxiter: int = 500,
     tol: float = 1e-6,
@@ -34,7 +60,8 @@ def _minimize(
         fun=fit_objective, implicit_diff=True, **other_settings
     )
     if "bounds" in inspect.signature(minimizer.init_state).parameters:
-        return minimizer.run(init_pars, bounds=bounds, model=model, data=data)[0]
+        lower, upper = _get_bounds(bounds, init_pars)
+        return minimizer.run(init_pars, bounds=(lower, upper), model=model, data=data)[0]
     return minimizer.run(init_pars, model=model, data=data)[0]
 
 
@@ -42,21 +69,15 @@ def _minimize(
 def fit(
     data: Array,
     model: PyTree,
-    init_pars: Array | None = None,
-    bounds: tuple[Array, Array] | None = None,
+    init_pars: dict[str, ArrayLike],
+    bounds: dict[str, Array],
     method: str = "LBFGSB",
     maxiter: int = 500,
     tol: float = 1e-6,
     other_settings: dict[str, float] | None = None,
-) -> Array:
+) -> dict[str, Array]:
     def fit_objective(pars: Array, model: PyTree, data: Array) -> float:
-        return cast(float, -model.logpdf(pars, data)[0])
-
-    if bounds is None:
-        bounds = model.config.suggested_bounds()
-
-    if init_pars is None:
-        init_pars = model.config.suggested_init()
+        return cast(float, -model.logpdf(data=data, pars=pars))
 
     return _minimize(
         fit_objective=fit_objective,
@@ -75,36 +96,22 @@ def fit(
 def fixed_poi_fit(
     data: Array,
     model: PyTree,
-    poi_condition: float,
-    init_pars: Array | None = None,
-    bounds: Array | None = None,
+    poi_value: float,
+    poi_name: str,
+    init_pars: dict[str, ArrayLike],
+    bounds: dict[str, Array],
     method: str = "LBFGSB",
     maxiter: int = 500,
     tol: float = 1e-6,
     other_settings: dict[str, float] | None = None,
-) -> Array:
-    poi_idx = model.config.poi_index
+) -> dict[str, Array]:
 
-    def fit_objective(pars: Array, model: PyTree, data: Array) -> float:  # NLL
+    def fit_objective(pars: dict[str, Array], model: PyTree, data: Array) -> float:  # NLL
         """lhood_pars_to_optimize: either all pars, or just nuisance pars"""
-        # pyhf.Model.logpdf returns list[float]
-        blank = jnp.zeros_like(jnp.asarray(model.config.suggested_init()))
-        blank += pars
-        return cast(float, -model.logpdf(blank.at[poi_idx].set(poi_condition), data)[0])
+        pars[poi_name] = poi_value
+        return cast(float, -model.logpdf(data=data, pars=pars))
 
-    if bounds is None:
-        lower, upper = model.config.suggested_bounds()
-        # ignore poi bounds
-        upper = jnp.delete(upper, poi_idx)
-        lower = jnp.delete(lower, poi_idx)
-        bounds = jnp.array([lower, upper])
-
-    if init_pars is None:
-        init_pars = model.config.suggested_init()
-        # ignore poi init
-        init_pars = jnp.delete(init_pars, poi_idx)
-
-    fit_res = _minimize(
+    res = _minimize(
         fit_objective=fit_objective,
         model=model,
         data=data,
@@ -115,7 +122,5 @@ def fixed_poi_fit(
         tol=tol,
         other_settings=other_settings,
     )
-    blank = jnp.zeros_like(jnp.asarray(model.config.suggested_init()))
-    blank += fit_res
-    poi_idx = model.config.poi_index
-    return blank.at[poi_idx].set(poi_condition)
+    res[poi_name] = poi_value
+    return res

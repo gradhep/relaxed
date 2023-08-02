@@ -72,15 +72,15 @@ def test_fixed_poi_fit_grad():
     pyhf.set_backend("jax")
 
     def pipeline(x):
-        model = uncorrelated_background(x * 5.0, x * 20, x * 2)
-        lower, upper = model.config.suggested_bounds()
+        model = example_model(x)
+        pars = {"mu": jnp.array(0.0), "shapesys": jnp.array([1.0, 1.0])}
 
-        return relaxed.mle.fixed_poi_fit(
+        relaxed.infer.hypotest(
+            1.,
+            data=model.expected_data(pars),
             model=model,
-            data=model.expected_data(jnp.array([0.0, 1.0])),
-            init_pars=model.config.suggested_init()[1:],
-            poi_condition=1.0,
-            bounds=(lower[1:], upper[1:]),
+            init_pars={"mu": jnp.array(1.0), "shapesys": jnp.array([1.0, 1.0])},
+            bounds={"mu": (0, 10), "shapesys": (0, 10)},
         )
 
     jacrev(pipeline)(jnp.asarray(0.5))
