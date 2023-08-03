@@ -43,7 +43,7 @@ def _gaussian_logpdf(
     data: Array,
     cov: Array,
 ) -> Array:
-    return cast(Array, jsp.stats.multivariate_normal.logpdf(data, bestfit_pars, cov))
+    return jsp.stats.multivariate_normal.logpdf(data, bestfit_pars, cov)
 
 
 @eqx.filter_jit
@@ -68,11 +68,10 @@ def gaussianity(
         cov=cov_approx,
         shape=(n_samples,),
     )
-    gaussian_parspace_samples = tree_structure(gaussian_parspace_samples)
 
     relative_nlls_model = jax.vmap(
         lambda pars, data: -(
-            model.logpdf(pars=pars, data=data)
+            model.logpdf(pars=tree_structure(pars), data=data)
             - model.logpdf(pars=bestfit_pars, data=data)
         ),  # scale origin to bestfit pars
         in_axes=(0, None),
@@ -81,10 +80,10 @@ def gaussianity(
     relative_nlls_gaussian = jax.vmap(
         lambda pars, data: -(
             _gaussian_logpdf(pars, data, cov_approx)
-            - _gaussian_logpdf(bestfit_pars, data, cov_approx)
+            - _gaussian_logpdf(flat_bestfit_pars, data, cov_approx)
         ),  # data fixes the lhood shape
         in_axes=(0, None),
-    )(gaussian_parspace_samples, bestfit_pars)
+    )(gaussian_parspace_samples, flat_bestfit_pars)
 
     diffs = relative_nlls_model - relative_nlls_gaussian
     return jnp.nanmean(diffs**2, axis=0)
