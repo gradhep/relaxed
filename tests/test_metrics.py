@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import jax.numpy as jnp
 import numpy as np
-import pyhf
 import pytest
 from dummy_pyhf import example_model
 from jax import jacrev, tree_map
@@ -22,15 +21,10 @@ def data():
 
 
 def test_gaussianity():
-    pyhf.set_backend("jax")
-    m = pyhf.simplemodels.uncorrelated_background(
-        jnp.array([5.0, 5.0]),
-        jnp.array([10.0, 10.0]),
-        jnp.array([0.1, 0.1]),
-    )
-    pars = jnp.asarray(m.config.suggested_init())
-    data = jnp.asarray(m.expected_data(pars))
-    relaxed.metrics.gaussianity(m, pars, data, PRNGKey(0))
+    model = example_model(5.0, n_bins=2)
+    pars = {"mu": jnp.array(0.0), "shapesys": jnp.array([1.0, 1.0])}
+    data = model.expected_data(pars)
+    relaxed.metrics.gaussianity(model, pars, data, PRNGKey(0))
 
 
 def test_gaussianity_grad():
@@ -39,7 +33,10 @@ def test_gaussianity_grad():
         pars = {"mu": jnp.array(0.0), "shapesys": jnp.array([1.0, 1.0])}
         data = model.expected_data(pars)
         return relaxed.metrics.gaussianity(
-            model, tree_map(lambda a: a * x, pars), data * x, PRNGKey(0)
+            model,
+            tree_map(lambda a: a * x, pars),
+            (data[0] * x, data[1] * x),
+            PRNGKey(0),
         )
 
     jacrev(pipeline)(4.0)  # just check you can calc it w/o exception

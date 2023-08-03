@@ -8,7 +8,7 @@ from typing import Any
 import jax
 import jax.numpy as jnp
 import jax.scipy as jsp
-from jax import Array
+from jax import Array, flatten_util
 
 
 @partial(jax.jit, static_argnames=["keep"])
@@ -118,10 +118,10 @@ def fisher_info(model: Any, pars: dict[str, Array], data: Array) -> Array:
     def lpdf(pars, data):  # handle keyword arguments
         return model.logpdf(pars=pars, data=data)
 
-    num_pars = len(jax.tree_util.tree_flatten(pars)[0])
-    hessian = jnp.array(
-        jax.tree_util.tree_flatten(jax.hessian(lpdf)(pars, data))[0]
-    ).reshape(num_pars, num_pars)
+    num_pars = len(flatten_util.ravel_pytree(pars)[0])
+    hessian = flatten_util.ravel_pytree(jax.hessian(lpdf)(pars, data))[0].reshape(
+        num_pars, num_pars
+    )
     return jnp.linalg.inv(-hessian)
 
 
@@ -146,4 +146,5 @@ def cramer_rao_uncert(model: Any, pars: Array, data: Array) -> Array:
     Array
         Cramer-Rao uncertainty on the MLE parameters.
     """
-    return jnp.sqrt(jnp.diag(fisher_info(model, pars, data)))
+    fisher = fisher_info(model, pars, data)
+    return jnp.sqrt(jnp.diag(fisher))

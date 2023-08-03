@@ -111,9 +111,12 @@ def test_fisher_info():
     relaxed.fisher_info(model, pars, data)
 
 
-def test_fisher_uncerts_validity():
+@pytest.mark.parametrize("n_bins", [1, 1])
+def test_fisher_uncerts_validity(n_bins):
     pyhf.set_backend("jax", pyhf.optimize.minuit_optimizer(verbose=1))
-    m = pyhf.simplemodels.uncorrelated_background([5], [50], [5])
+    m = pyhf.simplemodels.uncorrelated_background(
+        [5] * n_bins, [50] * n_bins, [5] * n_bins
+    )
     data = jnp.array([50.0, *m.config.auxdata])
 
     fit_res = pyhf.infer.mle.fit(
@@ -122,18 +125,18 @@ def test_fisher_uncerts_validity():
         return_uncertainties=True,
         par_bounds=[
             [-1, 10],
-            [-1, 10],
+            *[[-1, 10]] * n_bins,
         ],  # fit @ boundary produces unstable uncerts
     )
 
     # minuit fit uncerts
     mle_pars, mle_uncerts = fit_res[:, 0], fit_res[:, 1]
-    mle_pars_dict = {"mu": mle_pars[0], "shapesys": mle_pars[1]}
+    mle_pars_dict = {"mu": mle_pars[0], "shapesys": mle_pars[1:]}
     # uncertainties from autodiff hessian
     dummy_m = HEPDataLike(
-        jnp.array([5]),
-        jnp.array([50]),
-        jnp.array([5]),
+        jnp.array([5] * n_bins),
+        jnp.array([50] * n_bins),
+        jnp.array([5] * n_bins),
     )
     relaxed_uncerts = relaxed.cramer_rao_uncert(dummy_m, mle_pars_dict, data)
     assert np.allclose(mle_uncerts, relaxed_uncerts, rtol=0.05)
@@ -144,24 +147,24 @@ def test_fisher_info_grad():
         model = example_model(5.0, n_bins=2)
         pars = {"mu": jnp.array(0.0), "shapesys": jnp.array([1.0, 1.0])}
         data = model.expected_data(pars)
-        return relaxed.metrics.gaussianity(
-            model, tree_map(lambda a: a * x, pars), data * x, PRNGKey(0)
+        return relaxed.fisher_info(
+            model, tree_map(lambda a: a * x, pars), tree_map(lambda a: a * x, data)
         )
 
+    pipeline(4.0)  # just check you can calc it w/o exception
     jacrev(pipeline)(4.0)
 
 
 def test_fisher_uncert_grad():
-    pyhf.set_backend("jax")
-
     def pipeline(x):
         model = example_model(5.0, n_bins=2)
         pars = {"mu": jnp.array(0.0), "shapesys": jnp.array([1.0, 1.0])}
         data = model.expected_data(pars)
         return relaxed.cramer_rao_uncert(
-            model, tree_map(lambda a: a * x, pars), data * x
+            model, tree_map(lambda a: a * x, pars), (data[0] * x, data[1] * x)
         )
 
+    pipeline(4.0)  # just check you can calc it w/o exceptio
     jacrev(pipeline)(4.0)  # just check you can calc it w/o exception
 
 

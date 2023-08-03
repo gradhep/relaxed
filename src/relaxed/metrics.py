@@ -2,13 +2,13 @@ from __future__ import annotations
 
 __all__ = ("asimov_sig", "gaussianity")
 
-from functools import partial
 from typing import TYPE_CHECKING, Any, cast
 
+import equinox as eqx
 import jax
 import jax.numpy as jnp
 import jax.scipy as jsp
-from jax import Array
+from jax import Array, flatten_util
 from jax.random import multivariate_normal
 
 from relaxed.ops import fisher_info
@@ -46,12 +46,7 @@ def _gaussian_logpdf(
     return cast(Array, jsp.stats.multivariate_normal.logpdf(data, bestfit_pars, cov))
 
 
-@partial(
-    jax.jit,
-    static_argnames=[
-        "n_samples",
-    ],
-)
+@eqx.filter_jit
 def gaussianity(
     model: PyTree,
     bestfit_pars: dict[str, Array],
@@ -66,25 +61,27 @@ def gaussianity(
     # - centre the values wrt the best-fit vals to scale the differences
 
     cov_approx = jnp.linalg.inv(fisher_info(model, bestfit_pars, data))
-
+    flat_bestfit_pars, tree_structure = flatten_util.ravel_pytree(bestfit_pars)
     gaussian_parspace_samples = multivariate_normal(
         key=rng_key,
-        mean=bestfit_pars,
+        mean=flat_bestfit_pars,
         cov=cov_approx,
         shape=(n_samples,),
     )
+    gaussian_parspace_samples = tree_structure(gaussian_parspace_samples)
 
     relative_nlls_model = jax.vmap(
         lambda pars, data: -(
-            model.logpdf(pars, data) - model.logpdf(bestfit_pars, data)
+            model.logpdf(pars=pars, data=data)
+            - model.logpdf(pars=bestfit_pars, data=data)
         ),  # scale origin to bestfit pars
         in_axes=(0, None),
     )(gaussian_parspace_samples, data)
 
     relative_nlls_gaussian = jax.vmap(
         lambda pars, data: -(
-            _gaussian_logpdf(pars, data, cov_approx)[0]
-            - _gaussian_logpdf(bestfit_pars, data, cov_approx)[0]
+            _gaussian_logpdf(pars, data, cov_approx)
+            - _gaussian_logpdf(bestfit_pars, data, cov_approx)
         ),  # data fixes the lhood shape
         in_axes=(0, None),
     )(gaussian_parspace_samples, bestfit_pars)
