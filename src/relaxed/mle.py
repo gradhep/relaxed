@@ -3,7 +3,7 @@ from __future__ import annotations
 __all__ = ("fit", "fixed_poi_fit")
 
 import inspect
-from typing import TYPE_CHECKING, Any, Callable, cast
+from typing import TYPE_CHECKING, Any, Callable, Sized, cast
 
 import jax
 import jax.numpy as jnp
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
 def _parse_bounds(
     bounds: dict[str, ArrayLike], init_pars: dict[str, ArrayLike]
-) -> tuple[dict[str, ArrayLike], dict[str, ArrayLike]]:
+) -> tuple[dict[str, Array], dict[str, Array]]:
     """Convert dict of bounds to a dict of lower and a dict of upper bounds."""
     lower = {}
     upper = {}
@@ -33,10 +33,10 @@ def _parse_bounds(
         if array_v.ndim == 1:
             if (
                 isinstance(init_pars[k], (list, jax.Array, np.ndarray))
-                and init_pars[k].size > 1
+                and jnp.array(init_pars[k]).size > 1
             ):  # If the initial parameter is a list or array
-                lower[k] = jnp.array([array_v[0]] * len(init_pars[k]))
-                upper[k] = jnp.array([array_v[1]] * len(init_pars[k]))
+                lower[k] = jnp.array([array_v[0]] * len(cast(Sized, init_pars[k])))
+                upper[k] = jnp.array([array_v[1]] * len(cast(Sized, init_pars[k])))
             else:  # If the initial parameter is a single value
                 lower[k] = array_v[0]
                 upper[k] = array_v[1]
@@ -53,7 +53,7 @@ def _minimize(
     model: PyTree,
     data: Array,
     init_pars: dict[str, ArrayLike],
-    bounds: dict[str, ArrayLike],
+    bounds: dict[str, ArrayLike] | None,
     method: str = "LBFGSB",
     maxiter: int = 500,
     tol: float = 1e-6,
@@ -67,8 +67,11 @@ def _minimize(
     )
     if "bounds" in inspect.signature(minimizer.init_state).parameters:
         if bounds is not None:
-            bounds = _parse_bounds(bounds, init_pars)
-        return minimizer.run(init_pars, bounds=bounds, model=model, data=data)[0]
+            lower, upper = _parse_bounds(bounds, init_pars)
+            return minimizer.run(
+                init_pars, bounds=(lower, upper), model=model, data=data
+            )[0]
+        return minimizer.run(init_pars, bounds=None, model=model, data=data)[0]
     return minimizer.run(init_pars, model=model, data=data)[0]
 
 
@@ -103,7 +106,7 @@ def fit(
 def fixed_poi_fit(
     data: Array,
     model: PyTree,
-    poi_value: float,
+    poi_value: ArrayLike,
     poi_name: str,
     init_pars: dict[str, ArrayLike],
     bounds: dict[str, Array] | None = None,
@@ -113,7 +116,7 @@ def fixed_poi_fit(
     other_settings: dict[str, float] | None = None,
 ) -> dict[str, Array]:
     def fit_objective(
-        pars: dict[str, Array], model: PyTree, data: Array
+        pars: dict[str, ArrayLike], model: PyTree, data: Array
     ) -> float:  # NLL
         """lhood_pars_to_optimize: either all pars, or just nuisance pars"""
         pars[poi_name] = poi_value

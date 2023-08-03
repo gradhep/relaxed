@@ -15,6 +15,7 @@ from relaxed.ops import fisher_info
 
 if TYPE_CHECKING:
     PyTree = Any
+    from jax.typing import ArrayLike
 
 
 @jax.jit
@@ -43,13 +44,13 @@ def _gaussian_logpdf(
     data: Array,
     cov: Array,
 ) -> Array:
-    return jsp.stats.multivariate_normal.logpdf(data, bestfit_pars, cov)
+    return cast(Array, jsp.stats.multivariate_normal.logpdf(data, bestfit_pars, cov))
 
 
 @eqx.filter_jit
 def gaussianity(
     model: PyTree,
-    bestfit_pars: dict[str, Array],
+    bestfit_pars: dict[str, ArrayLike],
     data: Array,
     rng_key: Any,
     n_samples: int = 1000,
