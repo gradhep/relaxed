@@ -43,11 +43,7 @@ def _gaussian_logpdf(
     data: Array,
     cov: Array,
 ) -> Array:
-    return cast(
-        Array, jsp.stats.multivariate_normal.logpdf(data, bestfit_pars, cov)
-    ).reshape(
-        1,
-    )
+    return cast(Array, jsp.stats.multivariate_normal.logpdf(data, bestfit_pars, cov))
 
 
 @partial(
@@ -58,7 +54,7 @@ def _gaussian_logpdf(
 )
 def gaussianity(
     model: PyTree,
-    bestfit_pars: Array,
+    bestfit_pars: dict[str, Array],
     data: Array,
     rng_key: Any,
     n_samples: int = 1000,
@@ -80,7 +76,7 @@ def gaussianity(
 
     relative_nlls_model = jax.vmap(
         lambda pars, data: -(
-            model.logpdf(pars, data)[0] - model.logpdf(bestfit_pars, data)[0]
+            model.logpdf(pars, data) - model.logpdf(bestfit_pars, data)
         ),  # scale origin to bestfit pars
         in_axes=(0, None),
     )(gaussian_parspace_samples, data)

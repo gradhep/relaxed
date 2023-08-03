@@ -7,8 +7,8 @@ import jax.numpy as jnp
 import numpy as np
 import pyhf
 import pytest
-from dummy_pyhf import example_model, uncorrelated_background
-from jax import jacrev, vmap
+from dummy_pyhf import HEPDataLike, example_model
+from jax import jacrev, tree_map, vmap
 from jax.random import PRNGKey, normal
 
 import relaxed
@@ -104,8 +104,8 @@ def test_hist_grad_validity(bins):
 
 def test_fisher_info():
     pyhf.set_backend("jax")
-    model = example_model(5.0)
-    pars = model.config.suggested_init()
+    model = example_model(1.0, n_bins=1)
+    pars = {"mu": 1.0, "shapesys": 1.0}
     data = model.expected_data(pars)
     # just check that it doesn't crash
     relaxed.fisher_info(model, pars, data)
@@ -128,37 +128,39 @@ def test_fisher_uncerts_validity():
 
     # minuit fit uncerts
     mle_pars, mle_uncerts = fit_res[:, 0], fit_res[:, 1]
-
+    mle_pars_dict = {"mu": mle_pars[0], "shapesys": mle_pars[1]}
     # uncertainties from autodiff hessian
-    dummy_m = uncorrelated_background(
+    dummy_m = HEPDataLike(
         jnp.array([5]),
         jnp.array([50]),
         jnp.array([5]),
     )
-    relaxed_uncerts = relaxed.cramer_rao_uncert(dummy_m, mle_pars, data)
+    relaxed_uncerts = relaxed.cramer_rao_uncert(dummy_m, mle_pars_dict, data)
     assert np.allclose(mle_uncerts, relaxed_uncerts, rtol=0.05)
 
 
 def test_fisher_info_grad():
-    pyhf.set_backend("jax")
-
     def pipeline(x):
-        model = example_model(5.0)
-        pars = model.config.suggested_init()
+        model = example_model(5.0, n_bins=2)
+        pars = {"mu": jnp.array(0.0), "shapesys": jnp.array([1.0, 1.0])}
         data = model.expected_data(pars)
-        return relaxed.fisher_info(model, pars * x, data * x)
+        return relaxed.metrics.gaussianity(
+            model, tree_map(lambda a: a * x, pars), data * x, PRNGKey(0)
+        )
 
-    jacrev(pipeline)(4.0)  # just check you can calc it w/o exception
+    jacrev(pipeline)(4.0)
 
 
 def test_fisher_uncert_grad():
     pyhf.set_backend("jax")
 
     def pipeline(x):
-        model = example_model(5.0)
-        pars = model.config.suggested_init()
+        model = example_model(5.0, n_bins=2)
+        pars = {"mu": jnp.array(0.0), "shapesys": jnp.array([1.0, 1.0])}
         data = model.expected_data(pars)
-        return relaxed.cramer_rao_uncert(model, pars * x, data * x)
+        return relaxed.cramer_rao_uncert(
+            model, tree_map(lambda a: a * x, pars), data * x
+        )
 
     jacrev(pipeline)(4.0)  # just check you can calc it w/o exception
 
@@ -178,9 +180,7 @@ def test_cut_validity(big_sample, keep):
 @pytest.mark.parametrize("keep", ["above", "below"])
 def test_cut_grad(keep):
     def pipeline(x):
-        model = example_model(5.0)
-        pars = model.config.suggested_init()
-        data = model.expected_data(pars)
+        data = jnp.array([1.0, 2.0, 3.0])
         return relaxed.cut(data, x, keep=keep)
 
     jacrev(pipeline)(4.0)  # just check you can calc it w/o exception

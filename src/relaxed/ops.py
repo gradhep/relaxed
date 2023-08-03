@@ -94,7 +94,7 @@ def hist(
 
 
 @jax.jit
-def fisher_info(model: Any, pars: Array, data: Array) -> Array:
+def fisher_info(model: Any, pars: dict[str, Array], data: Array) -> Array:
     """Fisher information matrix for a model with a logpdf method.
 
     Parameters
@@ -102,17 +102,27 @@ def fisher_info(model: Any, pars: Array, data: Array) -> Array:
     model : Any
         The model to compute the Fisher information matrix for.
         Needs to have a logpdf method (that returns list[float] for now).
-    pars : Array
-        The (MLE) parameters of the model.
+    pars : dict[str, Array]
+        The (MLE) parameters of the model, as a dict of arrays/floats.
     data : Array
         The data to compute the Fisher information matrix for.
 
     Returns
     -------
     Array
-        Fisher information matrix.
+        Fisher information matrix of shape (num_pars, num_pars).
+        Order of columns is the same as the order of the parameters in pars.
+        Parameters with multiple dimensions are flattened into their own columns.
     """
-    return jnp.linalg.inv(-jax.hessian(lambda p, d: model.logpdf(p, d)[0])(pars, data))
+
+    def lpdf(pars, data):  # handle keyword arguments
+        return model.logpdf(pars=pars, data=data)
+
+    num_pars = len(jax.tree_util.tree_flatten(pars)[0])
+    hessian = jnp.array(
+        jax.tree_util.tree_flatten(jax.hessian(lpdf)(pars, data))[0]
+    ).reshape(num_pars, num_pars)
+    return jnp.linalg.inv(-hessian)
 
 
 @jax.jit

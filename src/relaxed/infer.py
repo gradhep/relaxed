@@ -4,12 +4,12 @@ from __future__ import annotations
 __all__ = ("hypotest",)
 
 import logging
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import jax.numpy as jnp
+import jax.scipy as jsp
 from equinox import filter_jit
 from jax import Array
-import jax.scipy as jsp
 
 from relaxed.mle import fit, fixed_poi_fit
 
@@ -45,7 +45,7 @@ def hypotest(
     init_pars : dict[str, ArrayLike]
         The initial parameters to use for fits within the hypothesis test.
     bounds : dict[str, ArrayLike] | None
-        (optional) The bounds to use on parameters for fits within the hypothesis test. 
+        (optional) The bounds to use on parameters for fits within the hypothesis test.
     poi_name : str
         The name of the parameter(s) of interest.
     return_mle_pars : bool
@@ -66,13 +66,30 @@ def hypotest(
     """
     if test_stat == "q" or test_stat == "qmu":
         return qmu_test(
-            test_poi, data, model, init_pars, bounds, poi_name, return_mle_pars, expected_pars, cls_method
+            test_poi,
+            data,
+            model,
+            init_pars,
+            bounds,
+            poi_name,
+            return_mle_pars,
+            expected_pars,
+            cls_method,
         )
     if test_stat == "q0":
         logging.info(
             "test_poi automatically set to 0 for q0 test (bkg-only null hypothesis)"
         )
-        return q0_test(0.0, data, model, init_pars, bounds, poi_name, return_mle_pars, expected_pars)
+        return q0_test(
+            0.0,
+            data,
+            model,
+            init_pars,
+            bounds,
+            poi_name,
+            return_mle_pars,
+            expected_pars,
+        )
 
     msg = f"Unknown test statistic: {test_stat}"
     raise ValueError(msg)
@@ -95,14 +112,20 @@ def _profile_likelihood_ratio(
     else:
         conditional_bounds = None
     conditional_pars = fixed_poi_fit(
-        data, model, poi_value=test_poi, poi_name=poi_name, init_pars=conditional_init, bounds=conditional_bounds
+        data,
+        model,
+        poi_value=test_poi,
+        poi_name=poi_name,
+        init_pars=conditional_init,
+        bounds=conditional_bounds,
     )
     if expected_pars is None:
         mle_pars = fit(data, model, init_pars=init_pars, bounds=bounds)
     else:
         mle_pars = expected_pars
     profile_likelihood_ratio = -2 * (
-        model.logpdf(pars=conditional_pars, data=data) - model.logpdf(pars=mle_pars, data=data)
+        model.logpdf(pars=conditional_pars, data=data)
+        - model.logpdf(pars=mle_pars, data=data)
     )
 
     return profile_likelihood_ratio, mle_pars
