@@ -3,7 +3,8 @@ from __future__ import annotations
 __all__ = ("fit", "fixed_poi_fit")
 
 import inspect
-from typing import TYPE_CHECKING, Any, Callable, Sized, cast
+from collections.abc import Sized
+from typing import TYPE_CHECKING, Any, Callable, cast
 
 import jax
 import jax.numpy as jnp
