@@ -4,16 +4,18 @@ from __future__ import annotations
 __all__ = ("hypotest",)
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import jax.numpy as jnp
-import pyhf
+import jax.scipy as jsp
 from equinox import filter_jit
 from jax import Array
 
 from relaxed.mle import fit, fixed_poi_fit
 
-PyTree = Any
+if TYPE_CHECKING:
+    PyTree = Any
+    from jax.typing import ArrayLike
 
 
 @filter_jit
@@ -21,9 +23,12 @@ def hypotest(
     test_poi: float,
     data: Array,
     model: PyTree,
+    init_pars: dict[str, ArrayLike],
+    bounds: dict[str, ArrayLike] | None = None,
+    poi_name: str = "mu",
     return_mle_pars: bool = False,
-    test_stat: str = "q",
-    expected_pars: Array | None = None,
+    test_stat: str = "qmu",
+    expected_pars: dict[str, ArrayLike] | None = None,
     cls_method: bool = True,
 ) -> tuple[Array, Array] | Array:
     """Calculate expected CLs/p-values via hypothesis tests.
@@ -34,39 +39,96 @@ def hypotest(
         The value of the test parameter to use for the hypothesis test.
     data : Array
         The data to use for the hypothesis test.
-    model : pyhf.Model
-        The model to use for the hypothesis test.
-    lr : float
-        Learning rate for the MLE fit, done via gradient descent.
-    return_mle_pars : bool, optional
-        Whether to return the MLE parameters calculated as a by-product.
-    test_stat : str, optional
-        The test statistic to use for the hypothesis test. One of:
-        - "qmu" (default, used for upper limits)
-        - "q0" (used for discovery of a positive signal)
-    expected_pars : Array, optional
-        Use if calculating expected significance and these are known. If not
-        provided, the MLE parameters will be fitted.
+    model : PyTree
+        The model to use for the hypothesis test. Has a `logpdf` method with signature
+        `logpdf(pars: dict[str, ArrayLike], data: Array) -> Array`.
+    init_pars : dict[str, ArrayLike]
+        The initial parameters to use for fits within the hypothesis test.
+    bounds : dict[str, ArrayLike] | None
+        (optional) The bounds to use on parameters for fits within the hypothesis test.
+    poi_name : str
+        The name of the parameter(s) of interest.
+    return_mle_pars : bool
+        Whether to return the MLE parameters.
+    test_stat : str
+        The test statistic type to use for the hypothesis test. Default is `qmu`.
+    expected_pars : dict[str, ArrayLike] | None
+        The MLE parameters from a previous fit, to use as the expected parameters.
+    cls_method : bool
+        Whether to use the CLs method for the hypothesis test. Default is True (if qmu test)
 
     Returns
     -------
     Array
         The expected CLs/p-value.
-    Array
-        The MLE parameters, if `return_mle_pars` is True.
+    or tuple[Array, Array]
+        The expected CLs/p-value and the MLE parameters. Only returned if `return_mle_pars` is True.
     """
-    if test_stat == "q":
+    if test_stat == "q" or test_stat == "qmu":
         return qmu_test(
-            test_poi, data, model, return_mle_pars, expected_pars, cls_method
+            test_poi,
+            data,
+            model,
+            init_pars,
+            bounds,
+            poi_name,
+            return_mle_pars,
+            expected_pars,
+            cls_method,
         )
     if test_stat == "q0":
         logging.info(
             "test_poi automatically set to 0 for q0 test (bkg-only null hypothesis)"
         )
-        return q0_test(0.0, data, model, return_mle_pars, expected_pars)
+        return q0_test(
+            0.0,
+            data,
+            model,
+            init_pars,
+            bounds,
+            poi_name,
+            return_mle_pars,
+            expected_pars,
+        )
 
     msg = f"Unknown test statistic: {test_stat}"
     raise ValueError(msg)
+
+
+@filter_jit
+def _profile_likelihood_ratio(
+    test_poi: float,
+    data: Array,
+    model: PyTree,
+    init_pars: dict[str, ArrayLike],
+    bounds: dict[str, ArrayLike] | None,
+    poi_name: str,
+    expected_pars: Array | None = None,
+) -> tuple[Array, Array]:
+    # remove the poi from the init_pars -- dict-based logic!
+    conditional_init = {k: v for k, v in init_pars.items() if k != poi_name}
+    if bounds is not None:
+        conditional_bounds = {k: v for k, v in bounds.items() if k != poi_name}
+    else:
+        conditional_bounds = None
+    conditional_pars = fixed_poi_fit(
+        data,
+        model,
+        poi_value=test_poi,
+        poi_name=poi_name,
+        init_pars=conditional_init,
+        bounds=conditional_bounds,
+    )
+    if expected_pars is None:
+        mle_pars = fit(data, model, init_pars=init_pars, bounds=bounds)
+    else:
+        mle_pars = expected_pars
+    profile_likelihood_ratio = -2 * (
+        model.logpdf(pars=conditional_pars, data=data)
+        - model.logpdf(pars=mle_pars, data=data)
+    )
+
+    return profile_likelihood_ratio, mle_pars
 
 
 @filter_jit
@@ -74,36 +136,27 @@ def qmu_test(
     test_poi: float,
     data: Array,
     model: PyTree,
+    init_pars: dict[str, ArrayLike],
+    bounds: dict[str, ArrayLike],
+    poi_name: str,
     return_mle_pars: bool = False,
     expected_pars: Array | None = None,
     cls_method: bool = True,
 ) -> tuple[Array, Array] | Array:
-    # hard-code 1 as inits for now
-    # TODO: need to parse different inits for constrained and global fits
-    # because init_pars[0] is not necessarily the poi init
-    init_pars = jnp.asarray(model.config.suggested_init())
-    conditional_pars = fixed_poi_fit(
-        data, model, poi_condition=test_poi, init_pars=init_pars[:-1]
+    """Calculate expected CLs/p-values via qmu test."""
+    profile_likelihood_ratio, mle_pars = _profile_likelihood_ratio(
+        test_poi, data, model, init_pars, bounds, poi_name, expected_pars
     )
-    if expected_pars is None:
-        mle_pars = fit(data, model, init_pars=init_pars)
-    else:
-        mle_pars = expected_pars
-    profile_likelihood = -2 * (
-        model.logpdf(conditional_pars, data)[0] - model.logpdf(mle_pars, data)[0]
-    )
-
-    poi_hat = mle_pars[model.config.poi_index]
-    qmu = jnp.where(poi_hat < test_poi, profile_likelihood, 0.0)
-
-    CLsb = 1 - pyhf.tensorlib.normal_cdf(jnp.sqrt(qmu))
+    poi_hat = mle_pars[poi_name]
+    qmu = jnp.where(poi_hat < test_poi, profile_likelihood_ratio, 0.0)
+    pmu = 1 - jsp.stats.norm.cdf(jnp.sqrt(qmu), loc=0, scale=1)
     if cls_method:
-        altval = 0.0
-        CLb = 1 - pyhf.tensorlib.normal_cdf(altval)
-        CLs = CLsb / CLb
+        alternative_hypothesis = 0.0
+        power_of_test = 1 - jsp.stats.norm.cdf(alternative_hypothesis, loc=0, scale=1)
+        result = pmu / power_of_test  # same as CLs = p_sb/(1-p_b) = CLs+b/CLb
     else:
-        CLs = CLsb
-    return (CLs, mle_pars) if return_mle_pars else CLs
+        result = pmu  # this is just the unmodified p-value
+    return (result, mle_pars) if return_mle_pars else result
 
 
 @filter_jit
@@ -111,29 +164,17 @@ def q0_test(
     test_poi: float,
     data: Array,
     model: PyTree,
+    init_pars: dict[str, ArrayLike],
+    bounds: dict[str, ArrayLike],
+    poi_name: str,
     return_mle_pars: bool = False,
     expected_pars: Array | None = None,
 ) -> tuple[Array, Array] | Array:
-    # hard-code 1 as inits for now
-    # TODO: need to parse different inits for constrained and global fits
-    # because init_pars[0] is not necessarily the poi init
-    init_pars = jnp.asarray(model.config.suggested_init())
-    conditional_pars = fixed_poi_fit(
-        data,
-        model,
-        poi_condition=test_poi,
-        init_pars=init_pars[:-1],
+    """Calculate expected p-values via q0 test."""
+    profile_likelihood_ratio, mle_pars = _profile_likelihood_ratio(
+        test_poi, data, model, init_pars, bounds, poi_name, expected_pars
     )
-    if expected_pars is None:
-        mle_pars = fit(data, model, init_pars=init_pars)
-    else:
-        mle_pars = expected_pars
-    profile_likelihood = -2 * (
-        model.logpdf(conditional_pars, data)[0] - model.logpdf(mle_pars, data)[0]
-    )
-
-    poi_hat = mle_pars[model.config.poi_index]
-    q0 = jnp.where(poi_hat >= test_poi, profile_likelihood, 0.0)
-    p0 = 1 - pyhf.tensorlib.normal_cdf(jnp.sqrt(q0))
-
+    poi_hat = mle_pars[poi_name]
+    q0 = jnp.where(poi_hat >= test_poi, profile_likelihood_ratio, 0.0)
+    p0 = 1 - jsp.stats.norm.cdf(jnp.sqrt(q0))
     return (p0, mle_pars) if return_mle_pars else p0

@@ -5,10 +5,11 @@ __all__ = ("cut", "hist", "fisher_info", "cramer_rao_uncert")
 from functools import partial
 from typing import Any
 
+import equinox as eqx
 import jax
 import jax.numpy as jnp
 import jax.scipy as jsp
-from jax import Array
+from jax import Array, flatten_util
 
 
 @partial(jax.jit, static_argnames=["keep"])
@@ -94,7 +95,7 @@ def hist(
 
 
 @jax.jit
-def fisher_info(model: Any, pars: Array, data: Array) -> Array:
+def fisher_info(model: Any, pars: dict[str, Array], data: Array) -> Array:
     """Fisher information matrix for a model with a logpdf method.
 
     Parameters
@@ -102,21 +103,31 @@ def fisher_info(model: Any, pars: Array, data: Array) -> Array:
     model : Any
         The model to compute the Fisher information matrix for.
         Needs to have a logpdf method (that returns list[float] for now).
-    pars : Array
-        The (MLE) parameters of the model.
+    pars : dict[str, Array]
+        The (MLE) parameters of the model, as a dict of arrays/floats.
     data : Array
         The data to compute the Fisher information matrix for.
 
     Returns
     -------
     Array
-        Fisher information matrix.
+        Fisher information matrix of shape (num_pars, num_pars).
+        Order of columns is the same as the order of the parameters in pars.
+        Parameters with multiple dimensions are flattened into their own columns.
     """
-    return jnp.linalg.inv(-jax.hessian(lambda p, d: model.logpdf(p, d)[0])(pars, data))
+
+    flat_pars, tree_structure = flatten_util.ravel_pytree(pars)
+
+    def lpdf(pars, data):  # handle keyword arguments
+        return model.logpdf(pars=tree_structure(pars), data=data)
+
+    return jnp.linalg.inv(-jax.hessian(lpdf)(flat_pars, data))
 
 
-@jax.jit
-def cramer_rao_uncert(model: Any, pars: Array, data: Array) -> Array:
+@eqx.filter_jit
+def cramer_rao_uncert(
+    model: Any, pars: dict[str, Array], data: Array, return_tree=True
+) -> Array:
     """Approximate uncertainties on MLE parameters for a model with a logpdf method.
     Defined as the square root of the diagonal of the Fisher information matrix, valid
     via the Cramer-Rao lower bound.
@@ -136,4 +147,9 @@ def cramer_rao_uncert(model: Any, pars: Array, data: Array) -> Array:
     Array
         Cramer-Rao uncertainty on the MLE parameters.
     """
-    return jnp.sqrt(jnp.diag(fisher_info(model, pars, data)))
+    fisher = fisher_info(model, pars, data)
+    uncert = jnp.sqrt(jnp.diag(fisher))
+    if return_tree:
+        _, tree_structure = flatten_util.ravel_pytree(pars)
+        return tree_structure(uncert)
+    return uncert

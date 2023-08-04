@@ -10,7 +10,7 @@ authors = [
 ]
 description = "Differentiable versions of common HEP operations."
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 classifiers = [
   "Development Status :: 1 - Planning",
   "Intended Audience :: Science/Research",
@@ -20,7 +20,6 @@ classifiers = [
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
@@ -30,9 +29,8 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-  "equinox",
-  "jaxopt>=0.7",   # LBFGSB
-  "optax>=0.1.2",  # deprecated jax.tree_multimap
+  "equinox>=0.10.6", # eqx.field
+  "jaxopt>=0.7",     # LBFGSB
   "typing_extensions >=4.6; python_version<'3.11'",
 ]
 
@@ -40,7 +38,7 @@ dependencies = [
 test = [
   "pytest >=6",
   "pytest-cov >=3",
-  "pyhf[jax] >=0.7.0",
+  "pyhf[jax]", # should be pyhf[jax] >=0.7.1, but not released yet
   "iminuit",
 ]
 dev = [
@@ -94,7 +92,7 @@ port.exclude_lines = [
 
 [tool.mypy]
 files = ["src", "tests"]
-python_version = "3.8"
+python_version = "3.9"
 warn_unused_configs = true
 strict = true
 show_error_codes = true
