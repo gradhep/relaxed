@@ -48,6 +48,7 @@ def hist(
     data: Array,
     bins: Array,
     bandwidth: float,  # | None = None,
+    weights: Array | None = None,
     density: bool = False,
     reflect_infinities: bool = False,
 ) -> Array:
@@ -75,8 +76,12 @@ def hist(
 
     bins = jnp.array([-jnp.inf, *bins, jnp.inf]) if reflect_infinities else bins
 
+
     # get cumulative counts (area under kde) for each set of bin edges
-    cdf = jsp.stats.norm.cdf(bins.reshape(-1, 1), loc=data, scale=bandwidth)
+    # account for data with non-integer weights
+    if weights is None:
+        weights = jnp.ones_like(data)
+    cdf = jsp.stats.norm.cdf(bins.reshape(-1, 1), loc=data, scale=bandwidth) * weights
     # sum kde contributions in each bin
     counts = (cdf[1:, :] - cdf[:-1, :]).sum(axis=1)
 
