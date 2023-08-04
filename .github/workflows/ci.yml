@@ -41,7 +41,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.8", "3.11"]
+        python-version: ["3.9", "3.11"]
         runs-on: [ubuntu-latest]
 
     steps:
@@ -57,9 +57,14 @@ jobs:
       - name: Install package
         run: python -m pip install .[test]
 
-      - name: Install jaxopt from source (temp)
+      - name: Install jaxopt from source (temp -- my lbfgs fix)
         run:
           python -m pip install --upgrade --force-reinstall git+https://github.com/google/jaxopt.git
+
+      - name: Install pyhf from source (temp -- jax devicearray not found fix)
+        run:
+          python -m pip install --upgrade --force-reinstall
+          git+https://github.com/scikit-hep/pyhf.git
 
       - name: Test package
         run: >-
