@@ -39,7 +39,7 @@ dependencies = [
 test = [
   "pytest >=6",
   "pytest-cov >=3",
-  "pyhf[jax] >=0.7.0",
+  "pyhf[jax]", # should be pyhf[jax] >=0.7.1, but not released yet
   "iminuit",
 ]
 dev = [

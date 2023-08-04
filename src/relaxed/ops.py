@@ -5,6 +5,7 @@ __all__ = ("cut", "hist", "fisher_info", "cramer_rao_uncert")
 from functools import partial
 from typing import Any
 
+import equinox as eqx
 import jax
 import jax.numpy as jnp
 import jax.scipy as jsp
@@ -115,18 +116,18 @@ def fisher_info(model: Any, pars: dict[str, Array], data: Array) -> Array:
         Parameters with multiple dimensions are flattened into their own columns.
     """
 
+    flat_pars, tree_structure = flatten_util.ravel_pytree(pars)
+
     def lpdf(pars, data):  # handle keyword arguments
-        return model.logpdf(pars=pars, data=data)
+        return model.logpdf(pars=tree_structure(pars), data=data)
 
-    num_pars = len(flatten_util.ravel_pytree(pars)[0])
-    hessian = flatten_util.ravel_pytree(jax.hessian(lpdf)(pars, data))[0].reshape(
-        num_pars, num_pars
-    )
-    return jnp.linalg.inv(-hessian)
+    return jnp.linalg.inv(-jax.hessian(lpdf)(flat_pars, data))
 
 
-@jax.jit
-def cramer_rao_uncert(model: Any, pars: Array, data: Array) -> Array:
+@eqx.filter_jit
+def cramer_rao_uncert(
+    model: Any, pars: dict[str, Array], data: Array, return_tree=True
+) -> Array:
     """Approximate uncertainties on MLE parameters for a model with a logpdf method.
     Defined as the square root of the diagonal of the Fisher information matrix, valid
     via the Cramer-Rao lower bound.
@@ -147,4 +148,8 @@ def cramer_rao_uncert(model: Any, pars: Array, data: Array) -> Array:
         Cramer-Rao uncertainty on the MLE parameters.
     """
     fisher = fisher_info(model, pars, data)
-    return jnp.sqrt(jnp.diag(fisher))
+    uncert = jnp.sqrt(jnp.diag(fisher))
+    if return_tree:
+        _, tree_structure = flatten_util.ravel_pytree(pars)
+        return tree_structure(uncert)
+    return uncert

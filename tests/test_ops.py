@@ -111,13 +111,13 @@ def test_fisher_info():
     relaxed.fisher_info(model, pars, data)
 
 
-@pytest.mark.parametrize("n_bins", [1, 1])
+@pytest.mark.parametrize("n_bins", [1, 2, 10])
 def test_fisher_uncerts_validity(n_bins):
     pyhf.set_backend("jax", pyhf.optimize.minuit_optimizer(verbose=1))
     m = pyhf.simplemodels.uncorrelated_background(
         [5] * n_bins, [50] * n_bins, [5] * n_bins
     )
-    data = jnp.array([50.0, *m.config.auxdata])
+    data = jnp.array([*[50.0] * n_bins, *m.config.auxdata])
 
     fit_res = pyhf.infer.mle.fit(
         data,
@@ -138,8 +138,21 @@ def test_fisher_uncerts_validity(n_bins):
         jnp.array([50] * n_bins),
         jnp.array([5] * n_bins),
     )
-    relaxed_uncerts = relaxed.cramer_rao_uncert(dummy_m, mle_pars_dict, data)
-    assert np.allclose(mle_uncerts, relaxed_uncerts, rtol=0.05)
+    data_rlx = jnp.array([50.0] * n_bins), jnp.array(m.config.auxdata)
+
+    fisher_rlx = relaxed.fisher_info(dummy_m, mle_pars_dict, data_rlx)
+    fisher_pyhf = jnp.linalg.inv(
+        -jax.hessian(lambda p, d: m.logpdf(p, d)[0])(mle_pars, data)
+    )
+
+    # compare
+    assert np.allclose(fisher_rlx, fisher_pyhf)  # exact match for fisher info
+    relaxed_uncerts = relaxed.cramer_rao_uncert(
+        dummy_m, mle_pars_dict, data_rlx, return_tree=False
+    )
+    assert np.allclose(
+        mle_uncerts, relaxed_uncerts, rtol=5e-2
+    )  # within 5%, don't expect exact match
 
 
 def test_fisher_info_grad():
@@ -152,19 +165,23 @@ def test_fisher_info_grad():
         )
 
     pipeline(4.0)  # just check you can calc it w/o exception
-    jacrev(pipeline)(4.0)
+    jacrev(pipeline)(4.0)  # just check you can calc it w/o exception
 
 
-def test_fisher_uncert_grad():
+@pytest.mark.parametrize("return_tree", [True, False])
+def test_fisher_uncert_grad(return_tree):
     def pipeline(x):
         model = example_model(5.0, n_bins=2)
         pars = {"mu": jnp.array(0.0), "shapesys": jnp.array([1.0, 1.0])}
         data = model.expected_data(pars)
         return relaxed.cramer_rao_uncert(
-            model, tree_map(lambda a: a * x, pars), (data[0] * x, data[1] * x)
+            model,
+            tree_map(lambda a: a * x, pars),
+            (data[0] * x, data[1] * x),
+            return_tree=return_tree,
         )
 
-    pipeline(4.0)  # just check you can calc it w/o exceptio
+    pipeline(4.0)  # just check you can calc it w/o exception
     jacrev(pipeline)(4.0)  # just check you can calc it w/o exception
 
 
