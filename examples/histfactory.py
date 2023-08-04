@@ -1,9 +1,12 @@
+from __future__ import annotations
+
+from collections.abc import Sequence
+
 import equinox as eqx
 import jax
 import jax.numpy as jnp
 import jax.scipy as jsp
 from jax import Array
-from typing import Sequence
 
 jax.config.update("jax_enable_x64", True)
 

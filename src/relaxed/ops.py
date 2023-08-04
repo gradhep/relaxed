@@ -76,7 +76,6 @@ def hist(
 
     bins = jnp.array([-jnp.inf, *bins, jnp.inf]) if reflect_infinities else bins
 
-
     # get cumulative counts (area under kde) for each set of bin edges
     # account for data with non-integer weights
     if weights is None:
