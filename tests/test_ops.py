@@ -152,7 +152,7 @@ def test_fisher_uncerts_validity(n_bins):
     )
     assert np.allclose(
         mle_uncerts, relaxed_uncerts, rtol=5e-2
-    )  # within 5%, don't expect exact match
+    )  # within 5%, don't expect exact match with minuit
 
 
 def test_fisher_info_grad():
