@@ -151,7 +151,7 @@ def qmu_test(
     qmu = jnp.where(poi_hat < test_poi, profile_likelihood_ratio, 0.0)
     pmu = 1 - jsp.stats.norm.cdf(jnp.sqrt(qmu), loc=0, scale=1)
     if cls_method:
-        alternative_hypothesis = 0.0  # point alternative is bkg-only
+        alternative_hypothesis = 0.0
         power_of_test = 1 - jsp.stats.norm.cdf(alternative_hypothesis, loc=0, scale=1)
         result = pmu / power_of_test  # same as CLs = p_sb/(1-p_b) = CLs+b/CLb
     else:

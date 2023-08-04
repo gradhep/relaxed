@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 def _parse_bounds(
     bounds: dict[str, ArrayLike], init_pars: dict[str, ArrayLike]
 ) -> tuple[dict[str, Array], dict[str, Array]]:
-    """Convert dict of bounds to a dict of lower and a dict of upper bounds."""
+    """Convert dict of bounds to a dict of lower bounds and a dict of upper bounds."""
     lower = {}
     upper = {}
 
@@ -115,10 +115,7 @@ def fixed_poi_fit(
     tol: float = 1e-6,
     other_settings: dict[str, float] | None = None,
 ) -> dict[str, Array]:
-    def fit_objective(
-        pars: dict[str, ArrayLike], model: PyTree, data: Array
-    ) -> float:  # NLL
-        """lhood_pars_to_optimize: either all pars, or just nuisance pars"""
+    def fit_objective(pars: dict[str, ArrayLike], model: PyTree, data: Array) -> float:
         pars[poi_name] = poi_value
         return cast(float, -model.logpdf(data=data, pars=pars))
 
