@@ -7,6 +7,7 @@ import jax
 import jax.numpy as jnp
 import jax.scipy as jsp
 from jax import Array
+from typing import Callable
 
 jax.config.update("jax_enable_x64", True)
 
@@ -16,7 +17,7 @@ def poisson_logpdf(n, lam):
     return n * jnp.log(lam) - lam - jsp.special.gammaln(n + 1)
 
 
-class Model(eqx.Module):
+class BaseModel(eqx.Module):
     def logpdf(self, data: Array, pars: dict[str, Array] | Array) -> Array:
         raise NotImplementedError
 
@@ -24,19 +25,32 @@ class Model(eqx.Module):
         raise NotImplementedError
 
 
-class Systematic(eqx.Module):
+class Parameter(eqx.Module):
     name: str = eqx.field(static=True)
-    constraint: Model
+
+    @property
+    def is_constrained(self) -> bool:
+        # check if class has a constraint attribute
+        return hasattr(self, "constraint")
+    
+    def suggested_init(self) -> dict[str, Array]:
+        raise NotImplementedError
+    
+    def suggested_bounds(self) -> tuple[Array, Array]:
+        raise NotImplementedError
+    
+class ConstrainedParameter(Parameter):
+    constraint: BaseModel
 
 
-class PoissonConstraint(Model):
+class PoissonConstraint(BaseModel):
     scaled_binwise_uncerts: Array
 
-    def __init__(self, nominal_bkg: Array, binwise_uncerts: Array) -> None:
-        if nominal_bkg.shape != binwise_uncerts.shape:
-            msg = f"Nominal bkg shape {nominal_bkg.shape} does not match binwise uncertainty shape {binwise_uncerts.shape}"
+    def __init__(self, nominal_counts: Array, binwise_uncerts: Array) -> None:
+        if nominal_counts.shape != binwise_uncerts.shape:
+            msg = f"Nominal bkg shape {nominal_counts.shape} does not match binwise uncertainty shape {binwise_uncerts.shape}"
             raise ValueError(msg)
-        self.scaled_binwise_uncerts = binwise_uncerts / nominal_bkg
+        self.scaled_binwise_uncerts = binwise_uncerts / nominal_counts
 
     def expected_data(self, gamma: Array) -> Array:
         return gamma * self.scaled_binwise_uncerts**-2
@@ -53,15 +67,36 @@ class PoissonConstraint(Model):
             poisson_logpdf(auxdata, (gamma * self.scaled_binwise_uncerts**-2)),
             axis=None,
         )
+            
+    
 
-
-class UncorrelatedShape(Systematic):
-    def __init__(self, name: str, nominal_bkg: Array, binwise_uncerts: Array) -> None:
+class UncorrelatedShape(ConstrainedParameter):
+    def __init__(self, name: str, nominal_counts: Array, binwise_uncerts: Array) -> None:
         self.name = name
-        self.constraint = PoissonConstraint(nominal_bkg, binwise_uncerts)
+        self.constraint = PoissonConstraint(nominal_counts, binwise_uncerts)
+
+    def suggested_init(self) -> Array:
+        return jnp.ones_like(self.constraint.scaled_binwise_uncerts)
+    
+    def suggested_bounds(self) -> tuple[Array, Array]:
+        return jnp.zeros_like(self.constraint.scaled_binwise_uncerts), 10 * jnp.ones_like(self.constraint.scaled_binwise_uncerts)
 
 
-class HEPDataLike(Model):
+class CorrelatedShape(ConstrainedParameter):
+    interpolator: Callable[[Array], Array]
+
+    def __init__(self, name: str, nominal_counts: Array, up_counts: Array, down_counts: Array):
+        self.name = name
+        # Define the data points for interpolation
+        alphas = [-1, 0, 1]  # -1 for down, 0 for nominal, 1 for up
+        data = [down_counts, nominal_counts, up_counts]
+
+        # Create the interpolator
+        self.interpolator = jsp.RegularGridInterpolator([alphas], data)
+
+
+
+class HEPDataLike(BaseModel):
     sig: Array
     bkg: Array
     db: Array
